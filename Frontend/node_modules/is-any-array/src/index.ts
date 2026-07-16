@@ -15,7 +15,6 @@ export type AnyArray =
 
 /**
  * Checks if an object is an instance of an Array (array or typed array, except those that contain bigint values).
- *
  * @param value - Object to check.
  * @returns True if the object is an array or a typed array.
  */

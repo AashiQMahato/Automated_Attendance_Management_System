@@ -1,4 +1,4 @@
-import { max as d3max, min as d3min } from 'd3-array';
+import { max as d3max, min as d3min } from '@antv/vendor/d3-array';
 import { applyStyle } from '../utils';
 import { select } from '../../utils/selection';
 import { ShapeComponent as SC } from '../../runtime';
@@ -66,7 +66,7 @@ export const Heatmap: SC<HeatmapOptions> = (options, context) => {
       .style('y', 0)
       .style('width', width)
       .style('height', height)
-      .style('src', ctx.canvas)
+      .style('src', ctx.canvas.toDataURL())
       .style('transform', transform)
       .call(applyStyle, style)
       .node();
