@@ -1,45 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Typography, Tag, Table, Grid } from 'antd';
-import { 
-  CheckCircleOutlined, 
+import { Table, Tag, Grid } from 'antd';
+import {
+  CheckCircleOutlined,
   CloseCircleOutlined,
   CalendarOutlined,
   BookOutlined,
-  PieChartOutlined,
   BarChartOutlined
 } from '@ant-design/icons';
-import { motion } from 'framer-motion';
-import { ReactTyped } from 'react-typed';
 import dayjs from 'dayjs';
-import { Pie, Column } from '@ant-design/plots'; // Changed from Bar to Column for better visualization
+import { Column } from '@ant-design/plots';
 import store from '../../../zustand/loginStore';
 
-const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
-
-// Add glassmorphism styles
-const glassStyle = {
-  background: 'rgba(255, 255, 255, 0.25)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.18)',
-  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-};
-
 
 const StudentAttendance = () => {
   const screens = useBreakpoint();
   const [attendanceData, setAttendanceData] = useState([]);
   const [subjectStats, setSubjectStats] = useState([]);
   const { loginUserData } = store(state => state);
-  
+
   const api = axios.create({
     baseURL: loginUserData.baseURL,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
     },
   });
+
   useEffect(() => {
     if (attendanceData.length > 0) {
       const stats = Object.entries(
@@ -65,10 +52,11 @@ const StudentAttendance = () => {
           percentage: Math.round((data.absent / data.total) * 100)
         }
       ]));
-      
+
       setSubjectStats(stats);
     }
   }, [attendanceData]);
+
   useEffect(() => {
     fetchAttendanceData();
   }, []);
@@ -92,8 +80,7 @@ const StudentAttendance = () => {
       console.error('Error fetching attendance data:', error);
     }
   };
-  
-  // Modified bar chart configuration
+
   const barConfig = {
     data: subjectStats,
     xField: 'subject',
@@ -103,13 +90,13 @@ const StudentAttendance = () => {
     columnStyle: {
       radius: [4, 4, 0, 0],
     },
-    color: ['#52c41a', '#ff4d4f'],
+    color: ['#10b981', '#f43f5e'],
     label: {
-      position: 'top', // Changed from 'middle' to 'top'
+      position: 'top',
       style: {
-        fill: '#000000',
+        fill: '#334155',
         fontSize: screens.xs ? 10 : 12,
-        opacity: 0.6,
+        opacity: 0.8,
       },
     },
     legend: {
@@ -121,17 +108,19 @@ const StudentAttendance = () => {
         autoRotate: true,
         style: {
           fontSize: screens.xs ? 10 : 12,
-          fill: '#666',
+          fill: '#64748b',
         },
       },
+      line: { style: { stroke: '#e2e8f0' } },
     },
     yAxis: {
       label: {
         style: {
           fontSize: screens.xs ? 10 : 12,
-          fill: '#666',
+          fill: '#64748b',
         },
       },
+      grid: { line: { style: { stroke: '#f1f5f9' } } },
     },
     tooltip: {
       customContent: (title, items) => {
@@ -143,10 +132,10 @@ const StudentAttendance = () => {
             (stat) => stat.subject === title && stat.status === item.name
           )?.percentage || 0
         }));
-  
+
         return (
-          <div style={{ padding: '8px' }}>
-            <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>{title}</div>
+          <div style={{ padding: '10px 12px' }}>
+            <div style={{ marginBottom: '6px', fontWeight: 600, color: '#0f172a' }}>{title}</div>
             {tooltipData.map((item, index) => (
               <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
                 <span
@@ -158,7 +147,7 @@ const StudentAttendance = () => {
                     marginRight: '8px',
                   }}
                 />
-                <span>{`${item.name}: ${item.value} (${item.percentage}%)`}</span>
+                <span style={{ color: '#334155' }}>{`${item.name}: ${item.value} (${item.percentage}%)`}</span>
               </div>
             ))}
           </div>
@@ -166,13 +155,14 @@ const StudentAttendance = () => {
       },
     },
   };
+
   const columns = [
     {
-      title: <div className="flex items-center gap-1 text-sm md:text-base"><CalendarOutlined /> Date</div>,
+      title: <span className="inline-flex items-center gap-1.5"><CalendarOutlined /> Date</span>,
       dataIndex: 'date',
       key: 'date',
       render: (date) => (
-        <span className="text-xs md:text-sm">
+        <span className="text-xs text-slate-600 md:text-sm">
           {dayjs(date).format(screens.xs ? 'DD/MM/YY' : 'DD MMM YYYY')}
         </span>
       ),
@@ -180,11 +170,11 @@ const StudentAttendance = () => {
       responsive: ['sm'],
     },
     {
-      title: <div className="flex items-center gap-1 text-sm md:text-base"><BookOutlined /> Subject</div>,
+      title: <span className="inline-flex items-center gap-1.5"><BookOutlined /> Subject</span>,
       dataIndex: 'subject',
       key: 'subject',
       render: (subject) => (
-        <span className="text-xs md:text-sm">{subject}</span>
+        <span className="text-xs font-medium text-slate-800 md:text-sm">{subject}</span>
       ),
       filters: [
         { text: 'Mathematics', value: 'Mathematics' },
@@ -201,7 +191,7 @@ const StudentAttendance = () => {
         <Tag
           icon={status === 'present' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
           color={status === 'present' ? 'success' : 'error'}
-          className="flex items-center gap-1 text-xs font-medium md:text-sm"
+          className="text-xs font-medium md:text-sm"
         >
           {status.toUpperCase()}
         </Tag>
@@ -212,183 +202,71 @@ const StudentAttendance = () => {
       dataIndex: 'timestamp',
       key: 'timestamp',
       render: (timestamp) => (
-        <span className="text-xs md:text-sm">
+        <span className="text-xs text-slate-500 md:text-sm">
           {dayjs(timestamp).format(screens.xs ? 'DD/MM HH:mm' : 'DD MMM YYYY HH:mm')}
         </span>
       ),
       responsive: ['lg'],
     },
   ];
+
+  const total = attendanceData.length;
+  const presentCount = attendanceData.filter(a => a.status === 'present').length;
+  const absentCount = attendanceData.filter(a => a.status === 'absent').length;
+  const percentage = total ? Math.round((presentCount / total) * 100) : 0;
+
+  const quickStats = [
+    { label: 'Total Days', value: total, accent: 'text-slate-900' },
+    { label: 'Present', value: presentCount, accent: 'text-emerald-600' },
+    { label: 'Absent', value: absentCount, accent: 'text-rose-600' },
+    { label: 'Rate', value: `${percentage}%`, accent: 'text-indigo-600' },
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen p-2 md:p-6 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-xl"
-    >
-      <div className="mx-auto max-w-7xl">
-        {/* Animated Header with Glassmorphism */}
-        <motion.div 
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          className="p-4 mb-4 text-center md:mb-8 rounded-2xl"
-          style={glassStyle}
-        >
-          <Title level={2} className="!mb-2 !text-xl md:!text-4xl flex items-center justify-center gap-2">
-            <ReactTyped
-              strings={['Attendance Tracker', 'Academic Presence', 'Learning Journey']}
-              typeSpeed={40}
-              backSpeed={50}
-              loop
-            />
-          </Title>
-          <Text className="block px-2 text-sm text-gray-700 md:text-lg">
-            Your comprehensive attendance history
-          </Text>
-        </motion.div>
-
-        {/* Data Visualization Section */}
-        <div className="grid gap-4 mb-4 md:gap-6 md:mb-8 md:grid-cols-2">
-
-          {/* Bar Chart with Glassmorphism */}
-          <motion.div
-            whileHover={{ scale: 1.01 }}
-            className="relative p-3 overflow-hidden md:p-6 rounded-xl"
-            style={glassStyle}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <BarChartOutlined className="text-base text-blue-600 md:text-xl" />
-              <Text strong className="text-sm md:text-lg">Subject-wise Attendance</Text>
-            </div>
-            <Column {...barConfig} height={screens.xs ? 200 : screens.md ? 300 : 250} />
-          </motion.div>
-        </div>
-
-        {/* Attendance Table with Glassmorphism */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="p-2 mb-4 md:p-6 rounded-xl"
-          style={glassStyle}
-        >
-          <Table
-            dataSource={attendanceData}
-            columns={columns}
-            pagination={{ 
-              pageSize: screens.xs ? 5 : 10, 
-              showSizeChanger: false,
-              size: screens.xs ? 'small' : 'default',
-            }}
-            bordered={false}
-            scroll={{ x: 'max-content' }}
-            size={screens.xs ? 'small' : 'middle'}
-            title={() => (
-              <div className="flex items-center gap-2 text-sm md:text-lg">
-                <CheckCircleOutlined className="text-green-600" />
-                Records: {attendanceData.length}
-              </div>
-            )}
-            className="attendance-table-glass" // Add custom CSS for table styling
-          />
-        </motion.div>
-
-        {/* Analytics Footer with Glassmorphism */}
-        <motion.div
-          className="relative p-3 mt-4 overflow-hidden text-center md:p-6 md:mt-6 rounded-xl"
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          style={{
-            ...glassStyle,
-            background: 'rgba(59, 130, 246, 0.2)',
-          }}
-        >
-          <Title level={3} className="!text-gray-800 !mb-2 text-base md:text-xl">
-            📊 Quick Stats
-          </Title>
-          <div className="grid grid-cols-2 gap-2 md:gap-4 md:grid-cols-4">
-            {[
-              { label: 'Total Days', value: attendanceData.length, color: 'text-blue-700' },
-              { 
-                label: 'Present', 
-                value: attendanceData.filter(a => a.status === 'present').length, 
-                color: 'text-green-700' 
-              },
-              { 
-                label: 'Absent', 
-                value: attendanceData.filter(a => a.status === 'absent').length, 
-                color: 'text-red-700' 
-              },
-              { 
-                label: 'Percentage', 
-                value: `${Math.round((attendanceData.filter(a => a.status === 'present').length / 
-                  attendanceData.length) * 100) || 0}%`,
-                color: 'text-purple-700'
-              }
-            ].map((stat, index) => (
-              <div 
-                key={index} 
-                className="p-2 rounded-lg md:p-3"
-                style={{
-                  ...glassStyle,
-                  background: 'rgba(255, 255, 255, 0.15)',
-                }}
-              >
-                <Text className="block text-xs text-gray-700 md:text-sm">{stat.label}</Text>
-                <Text strong className={`text-lg md:text-2xl ${stat.color}`}>
-                  {stat.value}
-                </Text>
-              </div>
-            ))}
+    <div className="space-y-6">
+      {/* Quick stats */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {quickStats.map((stat, index) => (
+          <div key={index} className="p-4 bg-white border shadow-sm rounded-xl border-slate-200">
+            <p className="text-xs text-slate-500">{stat.label}</p>
+            <p className={`mt-1 text-2xl font-semibold ${stat.accent}`}>{stat.value}</p>
           </div>
-        </motion.div>
+        ))}
       </div>
-    </motion.div>
+
+      {/* Chart */}
+      <div className="p-4 bg-white border shadow-sm rounded-xl border-slate-200 md:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChartOutlined className="text-indigo-600" aria-hidden="true" />
+          <h3 className="text-sm font-semibold text-slate-900 md:text-base">Subject-wise attendance</h3>
+        </div>
+        <Column {...barConfig} height={screens.xs ? 220 : screens.md ? 300 : 260} />
+      </div>
+
+      {/* Table */}
+      <div className="p-2 bg-white border shadow-sm rounded-xl border-slate-200 md:p-4">
+        <Table
+          dataSource={attendanceData}
+          columns={columns}
+          pagination={{
+            pageSize: screens.xs ? 5 : 10,
+            showSizeChanger: false,
+            size: screens.xs ? 'small' : 'default',
+          }}
+          bordered={false}
+          scroll={{ x: 'max-content' }}
+          size={screens.xs ? 'small' : 'middle'}
+          title={() => (
+            <div className="flex items-center gap-2 px-2 text-sm font-medium text-slate-700 md:text-base">
+              <CheckCircleOutlined className="text-emerald-600" />
+              Records: {attendanceData.length}
+            </div>
+          )}
+          locale={{ emptyText: 'No attendance records yet' }}
+        />
+      </div>
+    </div>
   );
 };
-
-// Add custom CSS for table styling
-// Add these styles to your custom CSS
-const additionalStyles = `
-  .ant-chart-container {
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
-  }
-
-  .ant-chart-container:hover {
-    backdrop-filter: blur(12px);
-  }
-
-  .ant-tooltip {
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.9);
-  }
-`;
-const customStyles = `
-  .attendance-table-glass .ant-table {
-    background: transparent !important;
-  }
-  
-  .attendance-table-glass .ant-table-thead > tr > th {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  }
-  
-  .attendance-table-glass .ant-table-tbody > tr > td {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  }
-  
-  .attendance-table-glass .ant-table-tbody > tr:hover > td {
-    background: rgba(255, 255, 255, 0.15) !important;
-  }
-`;
-
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.innerText = customStyles + additionalStyles;
-  document.head.appendChild(styleSheet);
-}
 
 export default StudentAttendance;

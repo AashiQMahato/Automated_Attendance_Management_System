@@ -11,7 +11,7 @@ const initialLoginState = {
     role: null,
     semester: null,
     avatar: null,
-    baseURL:"https://automated-attendance-management-system-484c.onrender.com/api/v1",
+    baseURL:"http://localhost:8080/api/v1",
 };
 
 const useLoginStore = create(

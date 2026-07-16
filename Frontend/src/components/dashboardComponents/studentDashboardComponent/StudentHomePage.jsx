@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ReactTyped } from 'react-typed';
+import { motion } from 'framer-motion';
 import axios from 'axios';
-import { 
-    RocketFilled, 
-    CheckCircleFilled, 
-    CalendarFilled, 
-    PieChartFilled, 
-    FireFilled, 
-    TrophyFilled, 
-    ScheduleFilled 
+import {
+    CheckCircleFilled,
+    CalendarFilled,
+    PieChartFilled,
+    FireFilled,
+    TrophyFilled,
 } from '@ant-design/icons';
-import { Users, BookOpen } from 'lucide-react';
+import { Users, BookOpen, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import store from '../../../zustand/loginStore';
-
 
 const StudentHomePage = () => {
     const navigate = useNavigate();
@@ -32,23 +28,23 @@ const StudentHomePage = () => {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
     });
-    
+
     useEffect(() => {
         const fetchSubjectsAndStats = async () => {
             try {
                 const { data: subjectsResponse } = await api.get('/subjects');
-                
+
                 if (!subjectsResponse.data || subjectsResponse.data.length === 0) {
                     console.warn('No subjects found for the student.');
                     setLoading(false);
                     return;
                 }
-                
+
                 const firstSubjectId = subjectsResponse.data[0]._id;
                 const { data: subjectDetailsResponse } = await api.get(`/subjects/${firstSubjectId}`);
-                
+
                 const subjectDetails = subjectDetailsResponse.data;
-                
+
                 setSubjects(subjectsResponse.data);
                 setStats({
                     attendancePercentage: subjectDetails.attendancePercentage || 0,
@@ -70,178 +66,157 @@ const StudentHomePage = () => {
 
     const performanceStats = [
         {
-            title: 'Attendance Percentage',
+            title: 'Attendance',
             value: `${stats.attendancePercentage}%`,
-            icon: <CheckCircleFilled className="text-3xl text-white" />,
-            progress: stats.attendancePercentage / 100,
-            gradient: 'from-green-500 to-emerald-600',
+            icon: CheckCircleFilled,
+            accent: 'bg-emerald-50 text-emerald-600',
         },
         {
             title: 'Total Classes',
             value: stats.totalClasses,
-            icon: <CalendarFilled className="text-3xl text-white" />,
-            trend: '📈 Consistent',
-            gradient: 'from-blue-500 to-indigo-600',
+            icon: CalendarFilled,
+            accent: 'bg-indigo-50 text-indigo-600',
         },
         {
-            title: 'Attended Classes',
+            title: 'Attended',
             value: stats.attendedClasses,
-            icon: <PieChartFilled className="text-3xl text-white" />,
-            trend: '🎯 On Track',
-            gradient: 'from-purple-500 to-fuchsia-600',
+            icon: PieChartFilled,
+            accent: 'bg-violet-50 text-violet-600',
+        },
+    ];
+
+    const quickActions = [
+        {
+            title: 'Detailed Attendance',
+            description: 'View your full class-by-class record',
+            icon: Users,
+            accent: 'bg-indigo-600',
+        },
+        {
+            title: 'Course Materials',
+            description: 'Access learning resources and notes',
+            icon: BookOpen,
+            accent: 'bg-emerald-600',
         },
     ];
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-                <div className="w-10 h-10 border-t-2 border-blue-500 rounded-full animate-spin"></div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" aria-busy="true" aria-live="polite">
+                <div className="p-6 bg-white border rounded-xl border-slate-200">
+                    <div className="w-48 h-5 mb-6 rounded animate-pulse bg-slate-100" />
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        {[0, 1, 2].map((i) => (
+                            <div key={i} className="rounded-lg h-28 animate-pulse bg-slate-100" />
+                        ))}
+                    </div>
+                </div>
+                <div className="space-y-6">
+                    <div className="h-40 bg-white border animate-pulse rounded-xl border-slate-200" />
+                    <div className="h-40 bg-white border animate-pulse rounded-xl border-slate-200" />
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-8 rounded-xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-            <div className="grid grid-cols-1 gap-8 mx-auto max-w-7xl lg:grid-cols-2">
-                {/* Main Performance Dashboard */}
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Performance overview */}
                 <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="relative overflow-hidden border shadow-2xl bg-white/5 backdrop-blur-xl rounded-3xl border-white/10"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="p-6 bg-white border shadow-sm rounded-xl border-slate-200"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20" />
+                    <div className="mb-6">
+                        <h2 className="text-base font-semibold text-slate-900">Academic performance</h2>
+                        <p className="mt-0.5 text-sm text-slate-500">Comprehensive attendance metrics</p>
+                    </div>
 
-                    <div className="relative p-8">
-                        <div className="mb-8">
-                            <h2 className="text-3xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-purple-300 bg-clip-text">
-                                <ReactTyped
-                                    strings={["Your Academic Performance", "Attendance Dashboard"]}
-                                    typeSpeed={40}
-                                    showCursor={false}
-                                />
-                            </h2>
-                            <p className="mt-2 text-blue-200">Comprehensive performance metrics</p>
-                        </div>
-
-                        {/* Performance Stats Grid */}
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                            {performanceStats.map((stat, idx) => (
-                                <motion.div
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        {performanceStats.map((stat, idx) => {
+                            const Icon = stat.icon;
+                            return (
+                                <div
                                     key={idx}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="p-6 transition-all rounded-xl bg-white/5 hover:bg-white/10"
+                                    className="p-4 transition-shadow border rounded-lg border-slate-200 hover:shadow-sm"
                                 >
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="p-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-500">
-                                            {stat.icon}
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-sm text-blue-300">{stat.title}</p>
-                                            <h3 className="text-2xl font-bold text-white">{stat.value}</h3>
-                                        </div>
+                                    <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${stat.accent}`}>
+                                        <Icon className="text-base" aria-hidden="true" />
                                     </div>
-                                    {stat.trend && (
-                                        <div className="px-2 py-1 text-xs text-center text-blue-200 rounded-full bg-white/10">
-                                            {stat.trend}
-                                        </div>
-                                    )}
-                                </motion.div>
-                            ))}
-                        </div>
+                                    <p className="text-2xl font-semibold text-slate-900">{stat.value}</p>
+                                    <p className="text-xs text-slate-500">{stat.title}</p>
+                                </div>
+                            );
+                        })}
                     </div>
                 </motion.div>
 
-                {/* Quick Actions & Insights */}
-                <div className="space-y-8">
+                {/* Quick actions & engagement */}
+                <div className="space-y-6">
                     <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="p-8 border shadow-2xl bg-white/5 backdrop-blur-xl rounded-3xl border-white/10"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: 0.05 }}
+                        className="p-6 bg-white border shadow-sm rounded-xl border-slate-200"
                     >
-                        <h3 className="mb-8 text-2xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-purple-300 bg-clip-text">
-                            Quick Academic Actions
-                        </h3>
-
-                        <div className="space-y-6">
-                            <motion.button
-                                whileHover={{ y: -2 }}
-                                className="w-full p-6 transition-all bg-white/5 rounded-xl hover:bg-white/10 group"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-500">
-                                        <Users className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div className="text-left">
-                                        <h4 className="text-lg font-semibold text-blue-200">Detailed Attendance</h4>
-                                        <p className="text-sm text-blue-300/80">View detailed class records</p>
-                                    </div>
-                                </div>
-                            </motion.button>
-
-                            <motion.button
-                                whileHover={{ y: -2 }}
-                                className="w-full p-6 transition-all bg-white/5 rounded-xl hover:bg-white/10 group"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-gradient-to-r from-emerald-600 to-cyan-500">
-                                        <BookOpen className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div className="text-left">
-                                        <h4 className="text-lg font-semibold text-blue-200">Course Materials</h4>
-                                        <p className="text-sm text-blue-300/80">Access learning resources</p>
-                                    </div>
-                                </div>
-                            </motion.button>
+                        <h3 className="mb-4 text-base font-semibold text-slate-900">Quick actions</h3>
+                        <div className="space-y-3">
+                            {quickActions.map((action, idx) => {
+                                const Icon = action.icon;
+                                return (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        className="flex items-center justify-between w-full p-4 text-left transition-colors border rounded-lg group border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.accent}`}>
+                                                <Icon className="w-5 h-5 text-white" aria-hidden="true" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-900">{action.title}</p>
+                                                <p className="text-xs text-slate-500">{action.description}</p>
+                                            </div>
+                                        </div>
+                                        <ArrowUpRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-slate-500" aria-hidden="true" />
+                                    </button>
+                                );
+                            })}
                         </div>
                     </motion.div>
 
-                    {/* Engagement Metrics */}
                     <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="p-8 border shadow-2xl bg-white/5 backdrop-blur-xl rounded-3xl border-white/10"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: 0.1 }}
+                        className="p-6 bg-white border shadow-sm rounded-xl border-slate-200"
                     >
-                        <h3 className="mb-6 text-2xl font-bold text-transparent bg-gradient-to-r from-emerald-400 to-cyan-300 bg-clip-text">
-                            Engagement Insights
-                        </h3>
-
+                        <h3 className="mb-4 text-base font-semibold text-slate-900">Engagement</h3>
                         <div className="space-y-4">
-                            <div className="p-4 transition-colors rounded-lg bg-black/20 group hover:bg-white/5">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h4 className="font-medium text-blue-200">Current Streak</h4>
-                                        <p className="text-sm text-blue-300/80">
-                                            <FireFilled className="mr-2 text-orange-500" />
-                                            5 days
-                                        </p>
-                                    </div>
-                                    <div className="w-24 h-2 overflow-hidden rounded-full bg-white/10">
-                                        <div
-                                            className="h-full transition-all duration-500 bg-gradient-to-r from-orange-400 to-red-500"
-                                            style={{ width: '60%' }}
-                                        />
-                                    </div>
+                            <div>
+                                <div className="mb-1.5 flex items-center justify-between">
+                                    <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                                        <FireFilled className="text-orange-500" aria-hidden="true" />
+                                        Current streak
+                                    </span>
+                                    <span className="text-sm font-medium text-slate-900">5 days</span>
+                                </div>
+                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                    <div className="h-full bg-orange-500 rounded-full" style={{ width: '60%' }} />
                                 </div>
                             </div>
-
-                            <div className="p-4 transition-colors rounded-lg bg-black/20 group hover:bg-white/5">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h4 className="font-medium text-blue-200">Best Streak</h4>
-                                        <p className="text-sm text-blue-300/80">
-                                            <TrophyFilled className="mr-2 text-yellow-500" />
-                                            12 days
-                                        </p>
-                                    </div>
-                                    <div className="w-24 h-2 overflow-hidden rounded-full bg-white/10">
-                                        <div
-                                            className="h-full transition-all duration-500 bg-gradient-to-r from-yellow-400 to-amber-500"
-                                            style={{ width: '90%' }}
-                                        />
-                                    </div>
+                            <div>
+                                <div className="mb-1.5 flex items-center justify-between">
+                                    <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                                        <TrophyFilled className="text-amber-500" aria-hidden="true" />
+                                        Best streak
+                                    </span>
+                                    <span className="text-sm font-medium text-slate-900">12 days</span>
+                                </div>
+                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                    <div className="h-full rounded-full bg-amber-500" style={{ width: '90%' }} />
                                 </div>
                             </div>
                         </div>
@@ -249,25 +224,26 @@ const StudentHomePage = () => {
                 </div>
             </div>
 
-            {/* Achievement Banner */}
+            {/* Achievement banner */}
             <motion.div
-                className="relative p-8 mt-8 overflow-hidden text-white shadow-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 rounded-2xl"
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.15 }}
+                className="flex flex-col items-start gap-4 p-6 border border-indigo-100 rounded-xl bg-indigo-50 sm:flex-row sm:items-center"
             >
-                <div className="relative z-10 text-center">
-                    <div className="mb-4 text-5xl">
-                        {stats.attendancePercentage >= 75 ? "🏆" : "🚀"}
-                    </div>
-                    <h2 className="mb-2 text-3xl font-bold text-white">
-                        {stats.attendancePercentage >= 75 
-                            ? `Outstanding! You're leading with ${stats.attendancePercentage}% attendance`
-                            : `Reach for ${Math.ceil(stats.attendancePercentage / 10) * 10 + 10}%! You're at ${stats.attendancePercentage}%`}
-                    </h2>
-                    <p className="text-lg text-blue-100">
+                <div className="flex items-center justify-center text-lg text-white bg-indigo-600 rounded-lg h-11 w-11 shrink-0">
+                    {stats.attendancePercentage >= 75 ? '🏆' : '🚀'}
+                </div>
+                <div>
+                    <h2 className="text-base font-semibold text-slate-900">
                         {stats.attendancePercentage >= 75
-                            ? "Maintain this momentum for academic excellence!"
-                            : "Every class attended brings you closer to your goals!"}
+                            ? `Outstanding — ${stats.attendancePercentage}% attendance`
+                            : `You're at ${stats.attendancePercentage}% — aim for ${Math.ceil(stats.attendancePercentage / 10) * 10 + 10}%`}
+                    </h2>
+                    <p className="mt-0.5 text-sm text-slate-600">
+                        {stats.attendancePercentage >= 75
+                            ? 'Keep this momentum going for academic excellence.'
+                            : 'Every class attended brings you closer to your goal.'}
                     </p>
                 </div>
             </motion.div>

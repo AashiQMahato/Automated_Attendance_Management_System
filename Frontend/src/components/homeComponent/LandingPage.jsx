@@ -127,7 +127,7 @@ function Navbar() {
             Login
           </a>
           <a
-            href="/get-started"
+            href="/signup"
             className="px-4 py-2 text-[13.5px] font-medium text-slate-950 bg-white rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5"
           >
             Get Started
@@ -161,7 +161,7 @@ function Navbar() {
           ))}
           <div className="h-px my-2 bg-white/10" />
           <a href="/login" onClick={() => setOpen(false)} className="px-3 py-2.5 text-sm font-medium text-slate-300">Login</a>
-          <a href="/get-started" onClick={() => setOpen(false)} className="mt-1 px-3.5 py-2.5 text-sm font-medium text-center text-slate-950 bg-white rounded-lg">
+          <a href="/signup" onClick={() => setOpen(false)} className="mt-1 px-3.5 py-2.5 text-sm font-medium text-center text-slate-950 bg-white rounded-lg">
             Get Started
           </a>
         </div>
@@ -328,7 +328,7 @@ function Hero() {
 
           <Reveal delay={200}>
             <div className="flex flex-wrap items-center gap-3 mb-11">
-              <a href="/get-started" className="group px-5 py-3 rounded-lg bg-white text-slate-950 text-[14px] font-medium flex items-center gap-2 hover:bg-slate-100 transition-colors">
+              <a href="/signup" className="group px-5 py-3 rounded-lg bg-white text-slate-950 text-[14px] font-medium flex items-center gap-2 hover:bg-slate-100 transition-colors">
                 Get Started
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </a>
@@ -445,33 +445,6 @@ function Footer() {
   );
 }
 
-function CTA() {
-  return (
-    <section className="px-5 py-20 mx-auto max-w-7xl sm:px-6 lg:px-8 sm:py-24">
-      <Reveal>
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] px-8 py-16 sm:py-20 text-center">
-          <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[280px] rounded-full bg-blue-600/15 blur-[100px]" />
-          <div className="relative">
-            <h2 className="max-w-2xl mx-auto mb-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              Ready to modernize attendance management?
-            </h2>
-            <p className="text-slate-400 text-[15.5px] max-w-lg mx-auto mb-9">
-              Set up your first section in under a day. No hardware overhaul, no spreadsheets to migrate by hand.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <a href="/get-started" className="px-6 py-3 rounded-lg bg-white text-slate-950 text-[14px] font-medium hover:bg-slate-100 transition-colors flex items-center gap-2">
-                Start Today <ArrowRight className="w-4 h-4" />
-              </a>
-              <a href="#demo" className="px-6 py-3 rounded-lg border border-white/15 text-slate-200 text-[14px] font-medium hover:bg-white/5 transition-colors">
-                Schedule Demo
-              </a>
-            </div>
-          </div>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
 
 const FAQS = [
   { q: "How accurate is the recognition?", a: "AttendEase's YOLOv8 + FaceNet pipeline runs at 99.6% recognition accuracy in typical classroom conditions, with a confidence threshold that flags uncertain matches instead of guessing." },
@@ -970,7 +943,6 @@ export default function LandingPage() {
       <WhyChoose />
       <Testimonials />
       <FAQ />
-      <CTA />
       <Footer />
     </div>
   );

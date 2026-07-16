@@ -13,14 +13,14 @@ import {
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import store from "../../../zustand/loginStore";
 import axios from "axios";
-import { message } from 'antd';
-import { motion } from "framer-motion";
+import { message } from "antd";
+import { motion, AnimatePresence } from "framer-motion";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { loginUserData, logoutUser } = store(state => state);
+  const { loginUserData, logoutUser } = store((state) => state);
 
   const changeTab = (tabName, path) => {
     setActiveTab(tabName);
@@ -30,20 +30,22 @@ const StudentDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(`${loginUserData.baseURL}/users/logout`, {}, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.post(
+        `${loginUserData.baseURL}/users/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
-      });
+      );
       message.success(response.data.message);
       logoutUser();
-
     } catch (error) {
       message.error(error.message);
     }
-  }
-
+  };
 
   const getActiveTab = (path) => {
     if (path === "/studentdashboard") return "Home";
@@ -54,124 +56,164 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState(getActiveTab(location.pathname));
 
   const navItems = [
-    { name: "Home", path: "/studentdashboard", icon: <FaHome className="w-6 h-6" /> },
-    { name: "Calendar", path: "/studentdashboard/calendar", icon: <FaCalendarAlt className="w-6 h-6" /> },
-    { name: "Assignments", path: "/studentdashboard/assignments", icon: <FaUserGraduate className="w-6 h-6" /> },
-    { name: "Holidays", path: "/studentdashboard/holidays", icon: <FaStar className="w-6 h-6" /> },
-    { name: "Attendance", path: "/studentdashboard/attendance", icon: <FaClipboardCheck className="w-6 h-6" /> },
+    { name: "Home", path: "/studentdashboard", icon: FaHome },
+    { name: "Calendar", path: "/studentdashboard/calendar", icon: FaCalendarAlt },
+    { name: "Assignments", path: "/studentdashboard/assignments", icon: FaUserGraduate },
+    { name: "Holidays", path: "/studentdashboard/holidays", icon: FaStar },
+    { name: "Attendance", path: "/studentdashboard/attendance", icon: FaClipboardCheck },
   ];
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <aside
-        className={`bg-gradient-to-br from-indigo-600 to-purple-500 text-white w-64 fixed h-full z-20 transition-all duration-300 ease-in-out flex flex-col shadow-2xl ${isSidebarOpen ? "left-0" : "-left-64"
-          } md:left-0 backdrop-blur-lg bg-opacity-90`}
-      >
-        <div className="flex-grow">
-          <div className="flex items-center justify-between p-4 md:hidden">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="text-2xl font-bold tracking-wider"
-            >
-              🎓 EduSync
-            </motion.div>
-            <button onClick={toggleSidebar} className="text-white transition-colors hover:text-purple-200">
-              <FaTimes size={24} />
-            </button>
-          </div>
+  const initials = (loginUserData?.fullName || "S")
+    .trim()
+    .split(/\s+/)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
+  return (
+    <div className="flex h-screen bg-slate-50">
+      {/* Mobile backdrop */}
+      <AnimatePresence>
+        {isSidebarOpen && (
           <motion.div
-            className="px-6 py-8 border-b border-white/10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-          >
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10">
-                <span className="text-xl font-bold">👩🎓</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold">{loginUserData.fullName}</h1>
-                <p className="text-sm text-purple-100/80">Student Account</p>
-              </div>
-            </div>
-          </motion.div>
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={toggleSidebar}
+            className="fixed inset-0 z-20 bg-slate-900/40 md:hidden"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
 
-          <nav className="px-4 mt-6 space-y-2">
-            {navItems.map((item) => (
-              <motion.button
-                key={item.name}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => changeTab(item.name, item.path)}
-                className={`flex items-center w-full p-3 rounded-xl transition-all
-            ${activeTab === item.name
-                    ? "bg-white/20 backdrop-blur-sm shadow-lg"
-                    : "hover:bg-white/10"
-                  }`}
-              >
-                {React.cloneElement(item.icon, { className: "w-5 h-5 text-purple-100" })}
-                <span className="ml-3 font-medium tracking-wide">{item.name}</span>
-              </motion.button>
-            ))}
-          </nav>
+      {/* Sidebar */}
+      <aside
+        className={`fixed z-30 flex h-full w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out md:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-label="Sidebar navigation"
+      >
+        {/* Brand row */}
+        <div className="flex items-center justify-between h-16 px-5 border-b shrink-0 border-slate-200">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-indigo-600 rounded-lg">
+              E
+            </div>
+            <span className="text-[15px] font-semibold text-slate-900">EduSync</span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 md:hidden"
+            aria-label="Close sidebar"
+          >
+            <FaTimes size={16} />
+          </button>
         </div>
 
-        <motion.div
-          className="p-4 border-t border-white/10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-between w-full p-3 transition-all rounded-lg bg-white/5 hover:bg-white/10 group"
+        {/* User summary */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-200">
+          <div
+            className="flex items-center justify-center text-sm font-semibold text-indigo-600 rounded-full h-9 w-9 shrink-0 bg-indigo-50"
+            aria-hidden="true"
           >
-            <div className="flex items-center">
-              <FaSignOutAlt className="mr-3 text-purple-100" />
-              <span className="font-medium">Log Out</span>
-            </div>
-            <FaChevronRight className="text-sm text-purple-100 transition-transform group-hover:translate-x-1" />
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate text-slate-900">
+              {loginUserData.fullName}
+            </p>
+            <p className="text-xs text-slate-500">Student account</p>
+          </div>
+        </div>
+
+        {/* Primary nav */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Primary">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.name;
+            return (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => changeTab(item.name, item.path)}
+                aria-current={isActive ? "page" : undefined}
+                className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 ${
+                  isActive
+                    ? "bg-indigo-50 text-indigo-600"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${
+                    isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"
+                  }`}
+                  aria-hidden="true"
+                />
+                {item.name}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Log out */}
+        <div className="p-3 border-t shrink-0 border-slate-200">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-colors rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+          >
+            <span className="flex items-center gap-3">
+              <FaSignOutAlt className="w-4 h-4" aria-hidden="true" />
+              Log out
+            </span>
+            <FaChevronRight className="h-3 w-3 text-slate-400 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </button>
-        </motion.div>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 transition-all duration-300 ease-in-out md:ml-64">
-        <header className="p-4 shadow-md bg-stone-300 md:hidden">
-          <button onClick={toggleSidebar} className="text-gray-800">
-            <FaBars size={24} />
+      {/* Main column */}
+      <div className="flex flex-col flex-1 min-w-0 md:ml-64">
+        {/* Top bar */}
+        <header className="sticky top-0 z-10 flex items-center h-16 gap-4 px-4 border-b shrink-0 border-slate-200 bg-white/80 backdrop-blur sm:px-6">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 md:hidden"
+            aria-label="Open sidebar"
+          >
+            <FaBars size={18} />
           </button>
-        </header>
-        <motion.header
-          className="px-4 py-8 mx-1 my-1 shadow-2xl bg-gradient-to-br from-blue-600 to-teal-500 sm:px-8 rounded-[1rem] backdrop-blur-sm bg-opacity-90 border border-white/20"
-          initial={{ opacity: 0, y: -50, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, type: 'spring' }}
-        >
-          <div className="max-w-6xl mx-auto">
-            <h2 className="mb-2 text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-100">
-              {activeTab}
-              <span className="ml-4 text-3xl">🎓</span>
-            </h2>
-            <motion.p
-              className={`text-lg font-medium text-blue-100/90 ${activeTab === "Home" ? "block" : "hidden"
-                }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: activeTab === "Home" ? 1 : 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              Your learning journey starts here<br />
-              <span className="text-sm font-normal">Ready to explore, {loginUserData.fullName}?</span>
-            </motion.p>
+          <div>
+            <p className="text-xs font-medium tracking-wide uppercase text-slate-400">
+              Dashboard
+            </p>
+            <h1 className="text-lg font-semibold leading-tight text-slate-900">{activeTab}</h1>
           </div>
-        </motion.header>
-        <div className="p-1 p-q">
+        </header>
+
+        {activeTab === "Home" && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className="px-4 py-4 bg-white border-b shrink-0 border-slate-200 sm:px-6"
+          >
+            <p className="text-sm text-slate-500">
+              Your learning journey starts here — ready to explore, {loginUserData.fullName}?
+            </p>
+          </motion.div>
+        )}
+
+        {/* Routed content */}
+        <main className="flex-1 p-4 overflow-y-auto sm:p-6">
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
