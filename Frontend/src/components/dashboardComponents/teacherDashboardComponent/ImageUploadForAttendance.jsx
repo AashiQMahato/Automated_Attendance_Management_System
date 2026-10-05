@@ -1,376 +1,286 @@
-import React, { useState, useRef } from "react";
-import { X, Camera, Upload, RotateCw, CloudUpload } from 'lucide-react';
+import React, { useRef, useState } from "react";
 import axios from "axios";
 import { message } from "antd";
-import { motion, AnimatePresence } from 'framer-motion';
-import useAttendanceStore from "../../../zustand/attendanceStore.js";
-import { ReactTyped } from 'react-typed';
+import { AnimatePresence, motion } from "framer-motion";
+import { Camera, ImagePlus, ScanFace, Sparkles, X } from "lucide-react";
 import { FACE_RECOGNITION_URL } from "../../../config/env";
+import Button from "../../ui/Button";
+import { Card, CardHeader } from "../../ui/Card";
+import { ProgressBar } from "../../ui/Progress";
+import StatusBadge from "../../ui/StatusBadge";
 
+// Opens the device camera through the native file picker (works on phones).
 const CameraCapture = ({ onCapture, onClose }) => {
-    const fileInputRef = useRef(null);
-  
-    const handleFileChange = (event) => {
-      const file = event.target.files[0];
-      if (file && file.type.startsWith("image/")) {
-        onCapture(file);
-      } else {
-        message.error("Please capture an image file.");
-      }
-    };
-  
-    return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="relative w-full h-[80vh] max-w-2xl flex items-center justify-center">
-          <button
-            onClick={() => fileInputRef.current.click()}
-            className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed bg-gray-800/50 rounded-xl border-white/20 hover:border-white/40"
-          >
-            <Camera className="w-12 h-12 mb-4 text-white" />
-            <span className="text-lg text-white">Tap to capture image</span>
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <button
-            onClick={onClose}
-            className="absolute p-2 rounded-full top-4 right-4 bg-white/20 hover:bg-white/40"
-          >
-            <X className="w-5 h-5 text-white" />
-          </button>
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith("image/")) onCapture(file);
+    else message.error("Please capture an image file.");
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Capture class photo"
+    >
+      <motion.div
+        className="relative w-full max-w-md rounded-2xl border border-line bg-surface p-6 text-center shadow-pop"
+        initial={{ scale: 0.97, y: 8 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.98, y: 4 }}
+        transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="focus-ring absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-ink-2"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand/10 text-brand">
+          <Camera className="h-5 w-5" />
         </div>
-      </div>
-    );
+        <h2 className="text-[17px] font-semibold text-ink">Capture the class</h2>
+        <p className="mt-1 text-sm text-ink-2">Make sure faces are well lit and facing the camera.</p>
+        <Button variant="primary" size="lg" icon={Camera} className="mt-6 w-full" onClick={() => fileInputRef.current.click()}>
+          Open camera
+        </Button>
+        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+      </motion.div>
+    </motion.div>
+  );
 };
 
 const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
-    const [image, setImage] = useState(null);
-    const [results, setResults] = useState(null);
-    const [error, setError] = useState(null);
-    const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
-    const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const [showCamera, setShowCamera] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState(null);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef(null);
 
-    const handleCameraCapture = (capturedFile) => {
-        handleFile(capturedFile);
-        setShowCamera(false);
-    };
+  const handleFile = (file) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      message.error("Image size should not exceed 5MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      message.error("Please upload an image file");
+      return;
+    }
+    setImage(file);
+    setResults(null);
+    setError(null);
+    setImagePreviewUrl(URL.createObjectURL(file));
+  };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        handleFile(file);
-    };
+  const clearImage = () => {
+    setImagePreviewUrl(null);
+    setImage(null);
+    setResults(null);
+    setError(null);
+  };
 
-    const handleFile = (file) => {
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                message.error('Image size should not exceed 5MB');
-                return;
-            }
+  const handleUpload = async () => {
+    if (!image) {
+      message.warning("Please select an image first");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const messageKey = "uploadMessage";
+    message.loading({ content: "Recognizing faces…", key: messageKey });
 
-            if (!file.type.startsWith('image/')) {
-                message.error('Please upload an image file');
-                return;
-            }
+    try {
+      const formData = new FormData();
+      formData.append("file", image);
+      const response = await axios.post(`${FACE_RECOGNITION_URL}/upload_and_recognize/`, formData, {
+        headers: { "Content-Type": "multipart/form-data", Accept: "application/json" },
+        timeout: 30000,
+      });
 
-            setImage(file);
-            setResults(null);
-            setError(null);
-
-            const previewUrl = URL.createObjectURL(file);
-            setImagePreviewUrl(previewUrl);
-            message.success('Image selected successfully');
+      if (response.data) {
+        setResults({ faces_detected: response.data.faces_detected || 0, results: response.data.results || [] });
+        if (response.data.cloudinary_url) {
+          addAttendanceRecord(response.data.results, subjects, response.data.cloudinary_url);
         }
-    };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const file = e.dataTransfer.files[0];
-        handleFile(file);
-    };
-
-    // Modified: We removed the revoking of the URL to ensure the preview remains persistent.
-    const handleImageLoad = () => {
-        // No longer revoking the object URL so the preview stays visible.
-    };
-
-    const handleUpload = async () => {
-        if (!image) {
-            message.warning('Please select an image first!');
-            return;
+        message.success({ content: `Found ${response.data.faces_detected || 0} faces`, key: messageKey, duration: 3 });
+      }
+    } catch (err) {
+      let errorMessage = "We couldn't process this photo. Try again or mark attendance manually.";
+      if (err.code === "ECONNABORTED") errorMessage = "Recognition took too long. Please try again.";
+      else if (err.response) {
+        switch (err.response.status) {
+          case 400:
+            errorMessage = "This image format isn't supported.";
+            break;
+          case 413:
+            errorMessage = "This image is too large.";
+            break;
+          case 500:
+            errorMessage = "The recognition service had a problem. Please try again shortly.";
+            break;
+          default:
+            break;
         }
+      } else if (err.request) {
+        errorMessage = "The recognition service is unreachable. You can still mark attendance manually.";
+      }
+      setError(errorMessage);
+      message.error({ content: errorMessage, key: messageKey, duration: 4 });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setLoading(true);
-        setError(null);
+  return (
+    <Card aria-labelledby="recognition">
+      <CardHeader
+        id="recognition"
+        icon={ScanFace}
+        title="Photo recognition"
+        description="Detect students from a class photo, then review below."
+      />
+      <div className="space-y-4 p-5">
+        <AnimatePresence>
+          {showCamera && (
+            <CameraCapture
+              onCapture={(file) => {
+                handleFile(file);
+                setShowCamera(false);
+              }}
+              onClose={() => setShowCamera(false)}
+            />
+          )}
+        </AnimatePresence>
 
-        const messageKey = 'uploadMessage';
-        message.loading({ content: 'Processing image...', key: messageKey });
+        {imagePreviewUrl ? (
+          <div className="relative overflow-hidden rounded-lg border border-line bg-surface-2">
+            <img src={imagePreviewUrl} alt="Selected class photo" className="aspect-video w-full object-contain" />
+            {!loading && (
+              <button
+                type="button"
+                onClick={clearImage}
+                aria-label="Remove photo"
+                className="focus-ring absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/60 text-white backdrop-blur hover:bg-slate-950/75"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface/60 backdrop-blur-[2px]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-[13px] font-medium text-ink shadow-pop">
+                  <Sparkles className="h-4 w-4 animate-pulse text-brand" /> Recognizing…
+                </span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              handleFile(e.dataTransfer.files[0]);
+            }}
+            className={`flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center transition-colors ${
+              isDragging ? "border-brand bg-brand/5" : "border-line-strong"
+            }`}
+          >
+            <ImagePlus className="mb-2 h-6 w-6 text-ink-3" aria-hidden="true" />
+            <p className="text-sm font-medium text-ink">Drop a class photo here</p>
+            <p className="mt-0.5 text-xs text-ink-3">JPG, PNG or HEIC · up to 5MB</p>
+          </div>
+        )}
 
-        try {
-            const formData = new FormData();
-            formData.append('file', image);
+        <div className="grid grid-cols-2 gap-2">
+          {imagePreviewUrl ? (
+            <Button icon={ImagePlus} onClick={() => inputRef.current?.click()} disabled={loading}>
+              Replace
+            </Button>
+          ) : (
+            <Button icon={ImagePlus} onClick={() => inputRef.current?.click()}>
+              Choose photo
+            </Button>
+          )}
+          {imagePreviewUrl ? (
+            <Button variant="primary" icon={ScanFace} onClick={handleUpload} loading={loading} disabled={!image}>
+              Recognize
+            </Button>
+          ) : (
+            <Button icon={Camera} onClick={() => setShowCamera(true)}>
+              Use camera
+            </Button>
+          )}
+        </div>
+        <input
+          ref={inputRef}
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(e) => {
+            handleFile(e.target.files[0]);
+            e.target.value = "";
+          }}
+          disabled={loading}
+        />
 
-            const response = await axios.post(
-                `${FACE_RECOGNITION_URL}/upload_and_recognize/`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Accept': 'application/json',
-                    },
-                    timeout: 30000
-                }
-            );
+        {error && (
+          <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-[13px] text-danger">
+            {error}
+          </p>
+        )}
 
-            if (response.data) {
-                setResults({
-                    faces_detected: response.data.faces_detected || 0,
-                    results: response.data.results || []
-                });
-
-                if (response.data.cloudinary_url) {
-                    setCloudinaryUrl(response.data.cloudinary_url);
-                    addAttendanceRecord(
-                        response.data.results,
-                        subjects,
-                        response.data.cloudinary_url
-                    );
-                }
-
-                message.success({
-                    content: `Successfully processed! Found ${response.data.faces_detected || 0} faces.`,
-                    key: messageKey,
-                    duration: 3
-                });
-            }
-
-        } catch (err) {
-            let errorMessage = "Error processing image";
-            if (err.code === 'ECONNABORTED') {
-                errorMessage = 'Request timed out. Please try again.';
-            } else if (err.response) {
-                switch (err.response.status) {
-                    case 400:
-                        errorMessage = err.response.data?.detail || 'Invalid image format';
-                        break;
-                    case 413:
-                        errorMessage = 'Image file is too large';
-                        break;
-                    case 500:
-                        errorMessage = 'Server error. Please try again later';
-                        break;
-                    default:
-                        errorMessage = err.response.data?.detail || 'Error uploading image';
-                }
-            }
-
-            setError(errorMessage);
-            message.error({
-                content: errorMessage,
-                key: messageKey,
-                duration: 4
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="relative overflow-hidden border shadow-2xl bg-white/5 backdrop-blur-xl rounded-3xl border-white/10"
-        >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20" />
-            <div className="relative p-8">
-                <AnimatePresence>
-                    {showCamera && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                        >
-                            <CameraCapture
-                                onCapture={handleCameraCapture}
-                                onClose={() => setShowCamera(false)}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <div className="mb-8">
-                    <h2 className="text-3xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-purple-300 bg-clip-text">
-                        <ReactTyped
-                            strings={["Intelligent Attendance Capture"]}
-                            typeSpeed={40}
-                            showCursor={false}
-                        />
-                    </h2>
-                    <p className="mt-2 text-blue-200">AI-powered face recognition system</p>
-                </div>
-
-                {/* Image Preview Section */}
-                {imagePreviewUrl && !loading && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 overflow-hidden border border-white/10 rounded-xl"
-                    >
-                        <div className="relative aspect-video">
-                            <img 
-                                src={imagePreviewUrl} 
-                                alt="Preview" 
-                                className="absolute inset-0 object-contain w-full h-full"
-                                onLoad={handleImageLoad}
-                            />
-                            <button
-                                onClick={() => {
-                                    setImagePreviewUrl(null);
-                                    setImage(null);
-                                    setResults(null);
-                                }}
-                                className="absolute p-2 transition-all rounded-full bg-black/50 top-2 right-2 hover:bg-black/70"
-                            >
-                                <X className="w-4 h-4 text-white" />
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* Upload Area */}
-                {!imagePreviewUrl && (
-                    <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        className={`relative group rounded-2xl border-2 border-dashed ${isDragging ? 'border-emerald-400' : 'border-white/20'} transition-all duration-300 min-h-[200px]`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                    >
-                        <input
-                            id="image-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            disabled={loading}
-                            className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
-                        />
-                        <div className="flex flex-col items-center justify-center h-full p-8 space-y-4">
-                            <CloudUpload className="w-8 h-8 text-purple-400 transition-colors group-hover:text-emerald-400" />
-                            <ReactTyped
-                                strings={[
-                                    "Drag & Drop Attendance Photo",
-                                    "Supported Formats: JPG/PNG/HEIC",
-                                    "Max File Size: 5MB"
-                                ]}
-                                typeSpeed={50}
-                                backSpeed={30}
-                                loop
-                                className="text-lg text-center text-blue-200"
-                            />
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="grid gap-4 mt-8 sm:grid-cols-2">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center justify-center gap-3 p-4 transition-all bg-white/5 rounded-xl hover:bg-white/10"
-                        onClick={() => setShowCamera(true)}
-                    >
-                        <Camera className="w-6 h-6 text-purple-400" />
-                        <span className="text-transparent bg-gradient-to-r from-blue-300 to-purple-200 bg-clip-text">
-                            Live Capture
-                        </span>
-                    </motion.button>
-
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center justify-center gap-3 p-4 transition-all bg-gradient-to-r from-blue-600 to-purple-500 rounded-xl hover:shadow-blue-glow disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={handleUpload}
-                        disabled={loading || !image}
-                    >
-                        {loading ? (
-                            <RotateCw className="w-6 h-6 text-white animate-spin" />
-                        ) : (
-                            <>
-                                <Upload className="w-6 h-6 text-white" />
-                                <span className="font-medium text-white">
-                                    Process Attendance
-                                </span>
-                            </>
-                        )}
-                    </motion.button>
-                </div>
-
-                {/* Results Section */}
-                {results && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-8 space-y-6"
-                    >
-                        <div className="p-6 bg-white/5 rounded-xl backdrop-blur-lg">
-                            <h3 className="mb-4 text-xl font-semibold text-blue-200">
-                                Recognition Analytics
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 rounded-lg bg-black/20">
-                                    <span className="text-blue-100">Total Detections</span>
-                                    <span className="text-2xl font-bold text-emerald-400">
-                                        {results.faces_detected}
-                                    </span>
-                                </div>
-                                {results.results.map((face, index) => (
-                                    <motion.div
-                                        key={index}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="p-4 transition-colors rounded-lg bg-black/20 group hover:bg-white/5"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h4 className="font-medium text-white">{face.name}</h4>
-                                                <p className="text-sm text-blue-100/80">
-                                                    Confidence: {(face.confidence * 100).toFixed(1)}%
-                                                </p>
-                                            </div>
-                                            <div className="w-24 h-2 overflow-hidden rounded-full bg-white/10">
-                                                <div
-                                                    className="h-full transition-all duration-500 bg-gradient-to-r from-blue-400 to-purple-400"
-                                                    style={{ width: `${face.confidence * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
+        {results && (
+          <div className="rounded-lg border border-line">
+            <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+              <p className="text-[13px] font-medium text-ink">Recognized</p>
+              <StatusBadge tone="info">{results.faces_detected} faces</StatusBadge>
             </div>
-        </motion.div>
-    );
+            {results.results.length === 0 ? (
+              <p className="px-4 py-4 text-[13px] text-ink-3">No known students were recognized in this photo.</p>
+            ) : (
+              <ul className="max-h-56 divide-y divide-line overflow-y-auto scrollbar-thin">
+                {results.results.map((face, index) => (
+                  <li key={index} className="flex items-center gap-3 px-4 py-2.5">
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-ink">{face.name}</span>
+                    <div className="w-20">
+                      <ProgressBar
+                        value={face.confidence * 100}
+                        tone={face.confidence >= 0.7 ? "success" : "warning"}
+                        label={`${face.name} confidence`}
+                      />
+                    </div>
+                    <span className="w-10 text-right text-xs tabular-nums text-ink-3">{(face.confidence * 100).toFixed(0)}%</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
 };
 
 export default ImageUploadForAttendance;

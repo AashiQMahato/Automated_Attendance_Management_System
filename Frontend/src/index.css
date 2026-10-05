@@ -1,194 +1,116 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-.body{
- background-color: bisque;
+
+/* ------------------------------------------------------------------
+   Dashboard design tokens
+   RGB channels so Tailwind can apply opacity (see tailwind.config.js).
+   ------------------------------------------------------------------ */
+:root {
+  --canvas: 248 250 252;      /* #F8FAFC */
+  --surface: 255 255 255;     /* #FFFFFF */
+  --surface-2: 241 245 249;   /* #F1F5F9 */
+  --ink: 15 23 42;            /* #0F172A */
+  --ink-2: 71 85 105;         /* #475569 */
+  --ink-3: 100 116 139;       /* #64748B */
+  --line: 226 232 240;        /* #E2E8F0 */
+  --line-strong: 203 213 225; /* #CBD5E1 */
+  --brand: 37 99 235;         /* #2563EB */
+  --brand-fg: 255 255 255;
+  /* Status inks are one step darker than the chart hues so small text
+     on tinted badges keeps >= 4.5:1 contrast. */
+  --success: 4 120 87;        /* #047857 */
+  --warning: 180 83 9;        /* #B45309 */
+  --danger: 190 18 60;        /* #BE123C */
+  --accent: 37 99 235;
 }
-@keyframes glow {
-    0% { filter: drop-shadow(0 0 5px rgba(96, 165, 250, 0.5)); }
-    50% { filter: drop-shadow(0 0 15px rgba(96, 165, 250, 0.8)); }
-    100% { filter: drop-shadow(0 0 5px rgba(96, 165, 250, 0.5)); }
+
+/* Role accents stay subtle: avatar, role chip, secondary chart series. */
+[data-role="Student"] { --accent: 5 150 105; }   /* emerald-600 */
+[data-role="Teacher"] { --accent: 79 70 229; }   /* indigo-600 */
+
+.dark {
+  --canvas: 2 6 23;           /* #020617 */
+  --surface: 15 23 42;        /* #0F172A */
+  --surface-2: 17 24 39;      /* #111827 */
+  --ink: 248 250 252;         /* #F8FAFC */
+  --ink-2: 203 213 225;       /* #CBD5E1 */
+  --ink-3: 148 163 184;       /* #94A3B8 */
+  --line: 30 41 59;           /* #1E293B */
+  --line-strong: 51 65 85;    /* #334155 */
+  --brand: 96 165 250;        /* #60A5FA */
+  --brand-fg: 2 6 23;
+  --success: 52 211 153;      /* emerald-400 */
+  --warning: 251 191 36;      /* amber-400 */
+  --danger: 251 113 133;      /* rose-400 */
+  color-scheme: dark;
+}
+.dark [data-role="Student"], .dark[data-role="Student"] { --accent: 52 211 153; }
+.dark [data-role="Teacher"], .dark[data-role="Teacher"] { --accent: 129 140 248; }
+
+@layer base {
+  .dashboard-root {
+    @apply bg-canvas font-ui text-[14px] leading-normal text-ink antialiased;
+    font-feature-settings: "cv11", "ss01";
   }
-  
-  .hover\:shadow-blue-glow:hover {
-    animation: glow 1.5s infinite;
-  }
-@media (max-width: 640px) {
-    .camera-container {
-      height: 85vh !important;
-    }
-    .camera-controls {
-      flex-direction: column;
-      gap: 1rem;
-    }
-  }
-.attendance-table .ant-table {
-  background: transparent !important;
-  color: white !important;
-}
-
-.attendance-table .ant-table-thead > tr > th {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: rgb(191, 219, 254) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  font-weight: 600;
-}
-
-.attendance-table .ant-table-tbody > tr > td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  transition: all 0.3s ease;
-}
-
-.attendance-table .ant-table-tbody > tr:hover > td {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.attendance-table .ant-empty-description {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.attendance-table .ant-table-placeholder:hover > td {
-  background-color: transparent !important;
-}
-
-/* Custom pagination styling */
-.custom-pagination.ant-pagination .ant-pagination-item a {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.custom-pagination.ant-pagination .ant-pagination-item-active {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.custom-pagination.ant-pagination .ant-pagination-item-active a {
-  color: white !important;
-}
-
-.custom-pagination .ant-pagination-prev .ant-pagination-item-link,
-.custom-pagination .ant-pagination-next .ant-pagination-item-link {
-  color: rgba(255, 255, 255, 0.85) !important;
-  background: transparent !important;
-}
-
-/* Custom Select and DatePicker styling */
-.ant-select-dropdown.dark-theme {
-  background-color: #1e293b !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.ant-select-dropdown.dark-theme .ant-select-item {
-  color: white !important;
-}
-
-.ant-select-dropdown.dark-theme .ant-select-item-option-active,
-.ant-select-dropdown.dark-theme .ant-select-item-option-selected {
-  background-color: rgba(59, 130, 246, 0.2) !important;
-}
-
-/* For DatePicker popup */
-.ant-picker-dropdown .ant-picker-panel-container {
-  background-color: #1e293b !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.ant-picker-dropdown .ant-picker-content th,
-.ant-picker-dropdown .ant-picker-content td {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.ant-picker-dropdown .ant-picker-header {
-  color: rgba(255, 255, 255, 0.85) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.ant-picker-dropdown .ant-picker-header button {
-  color: rgba(255, 255, 255, 0.55) !important;
-}
-
-/* Enhance focus states for accessibility */
-.ant-btn:focus,
-.ant-select:focus,
-.ant-picker:focus {
-  outline: 2px solid rgba(59, 130, 246, 0.5) !important;
-  outline-offset: 2px !important;
-}
-
-/* Style for input elements */
-.ant-picker,
-.ant-select:not(.ant-select-customize-input) .ant-select-selector {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
-}
-
-.ant-select-selection-item {
-  color: white !important;
-}
-
-/* Mobile optimizations */
-@media (max-width: 768px) {
-  .attendance-table .ant-table {
-    font-size: 14px !important;
-  }
-  
-  .attendance-table .ant-table-container {
-    border-radius: 12px !important;
-    overflow: hidden !important;
+  .dashboard-root ::selection {
+    background: rgb(var(--brand) / 0.18);
   }
 }
-/* Custom table styling */
-.attendance-table .ant-table {
-  background: transparent !important;
-  color: white !important;
+
+@layer components {
+  /* Visible, consistent keyboard focus for every interactive element. */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface;
+  }
+
+  .skeleton {
+    @apply rounded-md bg-surface-2;
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--surface-2)) 0px,
+      rgb(var(--line) / 0.6) 80px,
+      rgb(var(--surface-2)) 160px
+    );
+    background-size: 800px 100%;
+    @apply animate-shimmer;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--line-strong)) transparent;
+  }
 }
 
-.attendance-table .ant-table-thead > tr > th {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: rgb(191, 219, 254) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  font-weight: 600;
+/* Smooth light/dark change instead of an abrupt brightness jump. */
+.theme-transition,
+.theme-transition *:not(svg):not(svg *) {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease !important;
 }
 
-.attendance-table .ant-table-tbody > tr > td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  transition: all 0.3s ease;
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  .dashboard-root *,
+  .dashboard-root *::before,
+  .dashboard-root *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
-.attendance-table .ant-table-tbody > tr:hover > td {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+/* antd: let token-themed components inherit the dashboard font. */
+.dashboard-root .ant-table,
+.dashboard-root .ant-form,
+.dashboard-root .ant-select,
+.dashboard-root .ant-picker {
+  font-family: inherit;
 }
 
-.attendance-table .ant-empty-description {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.attendance-table .ant-table-placeholder:hover > td {
-  background-color: transparent !important;
-}
-
-/* Custom pagination styling */
-.custom-pagination.ant-pagination .ant-pagination-item a {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.custom-pagination.ant-pagination .ant-pagination-item-active {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.custom-pagination.ant-pagination .ant-pagination-item-active a {
-  color: white !important;
-}
-
-.custom-pagination .ant-pagination-prev .ant-pagination-item-link,
-.custom-pagination .ant-pagination-next .ant-pagination-item-link {
-  color: rgba(255, 255, 255, 0.85) !important;
-  background: transparent !important;
-}
-
-/* Custom Select and DatePicker styling */
-.ant-select-dropdown.dark-theme {
-  background-color: #1e293b !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+/* Translucent chrome falls back to a solid surface when requested. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    backdrop-filter: none !important;
+    background-color: rgb(var(--surface)) !important;
+  }
 }
