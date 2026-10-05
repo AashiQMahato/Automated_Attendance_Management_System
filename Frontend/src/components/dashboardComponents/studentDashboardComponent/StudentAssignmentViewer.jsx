@@ -1,41 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from "react";
+import { Drawer, Modal, Upload, message, Progress } from "antd";
 import {
-  Table, Tag,
-  Button,
-  Modal,
-  Upload,
-  message,
-  Drawer,
-  Space,
-  Descriptions,
-  Empty,
-  Progress,
-  Tooltip,
-  Grid
-} from 'antd';
-import {
-  CloudUploadOutlined, EyeOutlined, CheckCircleOutlined, ClockCircleOutlined, FilePdfOutlined,
-  FileExcelOutlined,
-  FileWordOutlined,
-  FileImageOutlined,
-  CalendarOutlined,
-  LoadingOutlined,
-  InboxOutlined,
-  CloseCircleOutlined,
-  DownloadOutlined
-} from '@ant-design/icons';
-import axios from 'axios';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { API_BASE_URL } from "../../../config/env";
-dayjs.extend(relativeTime);
+  CalendarClock,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  Download,
+  Eye,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  Inbox,
+  Upload as UploadIcon,
+} from "lucide-react";
+import store from "../../../zustand/loginStore";
+import api from "../../../lib/api";
+import useAsync from "../../../lib/useAsync";
+import { dayjs, dueStatus } from "../../../lib/format";
+import { useTheme } from "../../../theme/ThemeProvider";
+import PageHeader from "../../ui/PageHeader";
+import Button from "../../ui/Button";
+import StatusBadge from "../../ui/StatusBadge";
+import SegmentedControl from "../../ui/SegmentedControl";
+import DataTable from "../../ui/DataTable";
+import { Card } from "../../ui/Card";
+import { EmptyState } from "../../ui/States";
+import { SkeletonTable } from "../../ui/Skeleton";
+import AsyncContent from "../../ui/AsyncContent";
 
-const { useBreakpoint } = Grid;
+const fileIcon = (url) => {
+  const ext = url.split(".").pop().toLowerCase();
+  if (["xlsx", "xls", "csv"].includes(ext)) return FileSpreadsheet;
+  if (["jpg", "jpeg", "png", "heic", "webp"].includes(ext)) return FileImage;
+  return FileText;
+};
 
 const StudentAssignmentViewer = () => {
-  const screens = useBreakpoint();
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { loginUserData } = store((state) => state);
+  const { colors } = useTheme();
+  // The previous version compared against localStorage "userId", which is
+  // never written; the signed-in user's id lives in the login store.
+  const studentId = loginUserData?._id || localStorage.getItem("userId");
+
+  const {
+    data: assignments = [],
+    loading,
+    error,
+    reload: fetchAssignments,
+  } = useAsync(() => api.get("/assignments").then((res) => res.data.data || []), []);
+  const [filter, setFilter] = useState("all");
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [submitModalVisible, setSubmitModalVisible] = useState(false);
@@ -43,69 +56,37 @@ const StudentAssignmentViewer = () => {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  useEffect(() => {
-    fetchAssignments();
-  }, []);
+  const mySubmission = (a) => a.submissions?.find((sub) => sub.student === studentId);
 
-  const fetchAssignments = async () => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/assignments`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-        }
-      );
-      setAssignments(response.data.data);
-    } catch (error) {
-      message.error({
-        content: 'Failed to fetch assignments',
-        icon: <CloseCircleOutlined style={{ color: '#e11d48' }} />
-      });
-    } finally {
-      setLoading(false);
-    }
+  const getStatus = (a) => {
+    const sub = mySubmission(a);
+    if (sub)
+      return sub.grade !== undefined && sub.grade !== null
+        ? { key: "graded", tone: "success", label: `Graded · ${sub.grade}%` }
+        : { key: "submitted", tone: "success", label: "Submitted" };
+    const due = dueStatus(a.dueDate);
+    return { ...due, key: due.key === "overdue" ? "overdue" : "todo" };
   };
 
   const handleSubmission = async () => {
     if (!uploadFile) {
-      message.error('Please select a file to submit');
+      message.error("Please select a file to submit");
       return;
     }
-
     setSubmitting(true);
     setUploadProgress(0);
     const formData = new FormData();
-    formData.append('files', uploadFile);
-
+    formData.append("files", uploadFile);
     try {
-      await axios.post(
-        `${API_BASE_URL}/assignments/${selectedAssignment._id}/submit`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress(progress);
-          }
-        }
-      );
-
-      message.success({
-        content: 'Assignment submitted successfully',
-        icon: <CheckCircleOutlined style={{ color: '#10b981' }} />
+      await api.post(`/assignments/${selectedAssignment._id}/submit`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (e) => setUploadProgress(Math.round((e.loaded * 100) / e.total)),
       });
+      message.success("Assignment submitted");
       setSubmitModalVisible(false);
-      fetchAssignments();
-    } catch (error) {
-      message.error({
-        content: error.response?.data?.message || 'Failed to submit assignment',
-        icon: <CloseCircleOutlined style={{ color: '#e11d48' }} />
-      });
+      fetchAssignments({ silent: true });
+    } catch (err) {
+      message.error(err.response?.data?.message || "Failed to submit assignment");
     } finally {
       setSubmitting(false);
       setUploadFile(null);
@@ -113,258 +94,233 @@ const StudentAssignmentViewer = () => {
     }
   };
 
-  const getFileIcon = (fileUrl) => {
-    const extension = fileUrl.split('.').pop().toLowerCase();
-    switch (extension) {
-      case 'pdf':
-        return <FilePdfOutlined className="text-lg text-red-500" />;
-      case 'xlsx':
-      case 'xls':
-        return <FileExcelOutlined className="text-lg text-emerald-500" />;
-      case 'doc':
-      case 'docx':
-        return <FileWordOutlined className="text-lg text-blue-500" />;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-        return <FileImageOutlined className="text-lg text-violet-500" />;
-      default:
-        return <FileImageOutlined className="text-lg text-slate-400" />;
-    }
+  const counts = useMemo(() => {
+    const c = { all: assignments.length, todo: 0, done: 0, overdue: 0 };
+    assignments.forEach((a) => {
+      const k = getStatus(a).key;
+      if (k === "todo") c.todo += 1;
+      else if (k === "overdue") c.overdue += 1;
+      else c.done += 1;
+    });
+    return c;
+  }, [assignments]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const rows = useMemo(() => {
+    if (filter === "all") return assignments;
+    return assignments.filter((a) => {
+      const k = getStatus(a).key;
+      return filter === "done" ? k === "submitted" || k === "graded" : k === filter;
+    });
+  }, [assignments, filter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openDetails = (a) => {
+    setSelectedAssignment(a);
+    setDrawerVisible(true);
+  };
+  const openSubmit = (a) => {
+    setSelectedAssignment(a);
+    setSubmitModalVisible(true);
   };
 
-  const getStatusTag = (assignment) => {
-    const studentSubmission = assignment.submissions?.find(
-      sub => sub.student === localStorage.getItem('userId')
-    );
-    const isOverdue = dayjs(assignment.dueDate).isBefore(dayjs());
-
-    if (studentSubmission) {
-      return (
-        <Tag icon={<CheckCircleOutlined />} color="success">
-          {studentSubmission.grade ? `Graded: ${studentSubmission.grade}%` : 'Submitted'}
-        </Tag>
-      );
-    }
-    if (isOverdue) {
-      return <Tag icon={<ClockCircleOutlined />} color="error">Overdue</Tag>;
-    }
-    return (
-      <Tag icon={<ClockCircleOutlined />} color="warning">
-        Due {dayjs(assignment.dueDate).fromNow()}
-      </Tag>
-    );
-  };
-
-  const downloadFile = (url) => {
-    window.open(url, '_blank');
-  };
-
-  const responsiveColumns = () => {
-    const baseColumns = [
-      {
-        title: 'Assignment',
-        dataIndex: 'title',
-        key: 'title',
-        render: (text, record) => (
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-slate-900 md:text-base">{text}</span>
-            <span className="text-xs text-slate-500 md:text-sm">
-              {record.subject.name}
-            </span>
-          </div>
-        ),
+  const columns = [
+    {
+      key: "title",
+      header: "Assignment",
+      sortValue: (r) => r.title.toLowerCase(),
+      render: (r) => (
+        <button type="button" onClick={() => openDetails(r)} className="focus-ring -mx-1 rounded px-1 text-left">
+          <p className="font-medium text-ink hover:text-brand">{r.title}</p>
+          <p className="text-xs text-ink-3">{r.subject?.name}</p>
+        </button>
+      ),
+    },
+    {
+      key: "dueDate",
+      header: "Due",
+      sortValue: (r) => new Date(r.dueDate).getTime(),
+      render: (r) => <span className="tabular-nums">{dayjs(r.dueDate).format("MMM D, YYYY")}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => {
+        const s = getStatus(r);
+        return <StatusBadge tone={s.tone}>{s.label}</StatusBadge>;
       },
-      {
-        title: 'Due Date',
-        dataIndex: 'dueDate',
-        key: 'dueDate',
-        responsive: ['md'],
-        render: (date) => (
-          <Tooltip title={dayjs(date).format('MMMM D, YYYY h:mm A')}>
-            <span className="inline-flex items-center gap-1.5 text-slate-600">
-              <CalendarOutlined />
-              {dayjs(date).format(screens.md ? 'MMM D, YYYY' : 'MM/DD/YY')}
-            </span>
-          </Tooltip>
-        ),
-      },
-      {
-        title: 'Status',
-        key: 'status',
-        responsive: ['sm'],
-        render: (_, record) => getStatusTag(record),
-      },
-      {
-        title: 'Actions',
-        key: 'actions',
-        render: (_, record) => (
-          <Space direction={screens.md ? 'horizontal' : 'vertical'}>
-            <Tooltip title="View Details">
-              <Button
-                type="primary"
-                icon={<EyeOutlined />}
-                onClick={() => {
-                  setSelectedAssignment(record);
-                  setDrawerVisible(true);
-                }}
-                size={screens.md ? 'default' : 'small'}
-              >
-                {screens.md ? 'View' : null}
-              </Button>
-            </Tooltip>
-            {!record.submissions?.some(sub => sub.student === localStorage.getItem('userId')) && (
-              <Tooltip title="Submit Assignment">
-                <Button
-                  icon={<CloudUploadOutlined />}
-                  onClick={() => {
-                    setSelectedAssignment(record);
-                    setSubmitModalVisible(true);
-                  }}
-                  size={screens.md ? 'default' : 'small'}
-                >
-                  {screens.md ? 'Submit' : null}
-                </Button>
-              </Tooltip>
-            )}
-          </Space>
-        ),
-      },
-    ];
+    },
+    {
+      key: "actions",
+      header: <span className="sr-only">Actions</span>,
+      align: "right",
+      render: (r) => (
+        <div className="inline-flex gap-2">
+          <Button size="sm" variant="ghost" icon={Eye} onClick={() => openDetails(r)}>
+            View
+          </Button>
+          {!mySubmission(r) && (
+            <Button size="sm" variant="primary" icon={UploadIcon} onClick={() => openSubmit(r)}>
+              Submit
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
-    return baseColumns.filter(col => !col.responsive || col.responsive.some(br => screens[br]));
-  };
+  const sub = selectedAssignment && mySubmission(selectedAssignment);
 
   return (
-    <div>
-      <div className="p-4 bg-white border shadow-sm rounded-xl border-slate-200 md:p-6">
-        <div className="mb-4 md:mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">My assignments</h2>
-          <p className="mt-0.5 text-sm text-slate-500">Track due dates, submissions and grades</p>
-        </div>
+    <div className="space-y-6">
+      <PageHeader title="Assignments" description="Track due dates, submissions and grades." />
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20" aria-busy="true" aria-live="polite">
-            <LoadingOutlined style={{ fontSize: 32, color: '#4f46e5' }} spin />
-            <p className="mt-3 text-sm text-slate-500">Loading assignments…</p>
-          </div>
-        ) : assignments.length === 0 ? (
-          <Empty
-            description="No assignments found"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            className="my-8"
+      <Card className="overflow-hidden">
+        <AsyncContent
+          bare
+          loading={loading}
+          error={error}
+          onRetry={fetchAssignments}
+          loadingLabel="Loading assignments"
+          errorTitle="We couldn't load your assignments"
+          skeleton={<SkeletonTable />}
+        >
+          <DataTable
+            caption="Assignments"
+            columns={columns}
+            rows={rows}
+            pageSize={8}
+            initialSort={{ key: "dueDate", dir: "asc" }}
+            search={{ placeholder: "Search assignments", getText: (r) => `${r.title} ${r.subject?.name || ""}` }}
+            toolbar={
+              <SegmentedControl
+                label="Filter assignments"
+                value={filter}
+                onChange={setFilter}
+                options={[
+                  { value: "all", label: `All ${counts.all}` },
+                  { value: "todo", label: `To do ${counts.todo}` },
+                  { value: "done", label: `Done ${counts.done}` },
+                  { value: "overdue", label: `Overdue ${counts.overdue}` },
+                ]}
+              />
+            }
+            empty={
+              <EmptyState
+                icon={filter === "all" ? ClipboardList : Inbox}
+                title={filter === "all" ? "No assignments yet" : "Nothing here"}
+                description={
+                  filter === "all" ? "When teachers post assignments, they'll appear here." : "No assignments match this filter."
+                }
+                compact={filter !== "all"}
+              />
+            }
           />
-        ) : (
-          <Table
-            columns={responsiveColumns()}
-            dataSource={assignments}
-            rowKey="_id"
-            pagination={{
-              pageSize: 8,
-              showSizeChanger: false
-            }}
-            scroll={{ x: true }}
-            size={screens.md ? 'default' : 'middle'}
-          />
-        )}
-      </div>
+        </AsyncContent>
+      </Card>
 
       <Drawer
-        title={<span className="text-base font-semibold text-slate-900 md:text-lg">{selectedAssignment?.title}</span>}
+        title={selectedAssignment?.title}
         placement="right"
-        width={screens.md ? 480 : '100%'}
+        width={typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 480}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
+        extra={
+          selectedAssignment &&
+          !sub && (
+            <Button
+              size="sm"
+              variant="primary"
+              icon={UploadIcon}
+              onClick={() => {
+                setDrawerVisible(false);
+                setSubmitModalVisible(true);
+              }}
+            >
+              Submit
+            </Button>
+          )
+        }
       >
         {selectedAssignment && (
-          <div className="space-y-6">
-            <Descriptions bordered column={1} size={screens.md ? 'default' : 'small'}>
-              <Descriptions.Item label="Subject">
-                {selectedAssignment.subject.name}
-              </Descriptions.Item>
-              <Descriptions.Item label="Due Date">
-                {dayjs(selectedAssignment.dueDate).format(
-                  screens.md ? 'MMMM D, YYYY h:mm A' : 'MMM D, YYYY'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="Status">
-                {getStatusTag(selectedAssignment)}
-              </Descriptions.Item>
-            </Descriptions>
+          <div className="space-y-6 text-sm">
+            <dl className="grid grid-cols-2 gap-4 rounded-xl border border-line p-4">
+              <div>
+                <dt className="text-xs text-ink-3">Subject</dt>
+                <dd className="mt-0.5 font-medium text-ink">{selectedAssignment.subject?.name}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-3">Status</dt>
+                <dd className="mt-1">
+                  <StatusBadge tone={getStatus(selectedAssignment).tone}>{getStatus(selectedAssignment).label}</StatusBadge>
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs text-ink-3">Due</dt>
+                <dd className="mt-0.5 inline-flex items-center gap-1.5 font-medium text-ink">
+                  <CalendarClock className="h-4 w-4 text-ink-3" aria-hidden="true" />
+                  {dayjs(selectedAssignment.dueDate).format("dddd, MMMM D, YYYY · h:mm A")}
+                </dd>
+              </div>
+            </dl>
 
-            <div>
-              <h5 className="mb-2 text-sm font-semibold text-slate-900">Description</h5>
-              <p className="p-3 text-sm border rounded-lg border-slate-100 bg-slate-50 text-slate-600">
-                {selectedAssignment.description}
-              </p>
-            </div>
+            <section>
+              <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-3">Description</h3>
+              <p className="whitespace-pre-line leading-6 text-ink-2">{selectedAssignment.description}</p>
+            </section>
 
             {selectedAssignment.attachments?.length > 0 && (
-              <div>
-                <h5 className="mb-2 text-sm font-semibold text-slate-900">Attachments</h5>
-                <div className="space-y-2">
-                  {selectedAssignment.attachments.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 transition-colors border rounded-lg border-slate-200 hover:bg-slate-50"
-                    >
-                      <div className="flex items-center min-w-0 gap-2">
-                        {getFileIcon(file)}
-                        <span className="text-sm truncate text-slate-700">{file.split('/').pop()}</span>
-                      </div>
-                      <Button
-                        type="text"
-                        icon={<DownloadOutlined />}
-                        onClick={() => downloadFile(file)}
-                        size="small"
-                        aria-label="Download attachment"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <section>
+                <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-3">Attachments</h3>
+                <ul className="divide-y divide-line rounded-xl border border-line">
+                  {selectedAssignment.attachments.map((file, index) => {
+                    const Icon = fileIcon(file);
+                    return (
+                      <li key={index} className="flex items-center gap-3 px-3 py-2.5">
+                        <Icon className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
+                        <span className="min-w-0 flex-1 truncate text-ink-2">{file.split("/").pop()}</span>
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          icon={Download}
+                          aria-label="Download attachment"
+                          onClick={() => window.open(file, "_blank")}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
             )}
 
-            {selectedAssignment.submissions?.find(
-              sub => sub.student === localStorage.getItem('userId')
-            ) && (
-              <div>
-                <h5 className="mb-2 text-sm font-semibold text-slate-900">Your submission</h5>
-                <div className="p-4 border rounded-lg border-slate-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-slate-700">Submitted successfully</span>
-                    <CheckCircleOutlined className="text-lg text-emerald-500" />
-                  </div>
-
-                  {selectedAssignment.submissions[0].grade && (
-                    <div className="mt-3">
-                      <Progress
-                        percent={selectedAssignment.submissions[0].grade}
-                        status="active"
-                        strokeColor="#4f46e5"
-                      />
-                      <div className="mt-3 text-sm text-slate-600">
-                        <strong className="text-slate-800">Feedback</strong>
-                        <div className="mt-1.5 rounded-lg border border-slate-100 bg-slate-50 p-3">
-                          {selectedAssignment.submissions[0].feedback || 'No feedback provided'}
-                        </div>
-                      </div>
+            {sub && (
+              <section>
+                <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-3">Your submission</h3>
+                <div className="rounded-xl border border-line p-4">
+                  <p className="flex items-center gap-2 font-medium text-ink">
+                    <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
+                    Submitted {sub.submittedAt ? dayjs(sub.submittedAt).format("MMM D, h:mm A") : ""}
+                  </p>
+                  {sub.grade !== undefined && sub.grade !== null && (
+                    <div className="mt-4">
+                      <Progress percent={sub.grade} strokeColor={colors.brand} />
+                      <p className="mt-3 text-xs font-medium text-ink-3">Feedback</p>
+                      <p className="mt-1 rounded-lg bg-surface-2 p-3 text-ink-2">{sub.feedback || "No feedback provided"}</p>
                     </div>
                   )}
                 </div>
-              </div>
+              </section>
+            )}
+            {!sub && dayjs(selectedAssignment.dueDate).isBefore(dayjs()) && (
+              <p className="flex items-center gap-2 rounded-lg bg-danger/10 px-3 py-2 text-danger">
+                <Clock className="h-4 w-4" aria-hidden="true" />
+                The due date has passed.
+              </p>
             )}
           </div>
         )}
       </Drawer>
 
       <Modal
-        title={
-          <span className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
-            <CloudUploadOutlined className="text-indigo-600" />
-            Submit assignment
-          </span>
-        }
+        title="Submit assignment"
         open={submitModalVisible}
         onCancel={() => {
           setSubmitModalVisible(false);
@@ -372,35 +328,31 @@ const StudentAssignmentViewer = () => {
           setUploadProgress(0);
         }}
         onOk={handleSubmission}
-        okButtonProps={{ loading: submitting }}
+        okButtonProps={{ loading: submitting, disabled: !uploadFile }}
         okText="Submit"
         destroyOnClose
-        width={screens.md ? 520 : '90%'}
+        width={520}
       >
-        <div className="pt-2 text-center">
-          <Upload.Dragger
-            maxCount={1}
-            beforeUpload={(file) => {
-              setUploadFile(file);
-              return false;
-            }}
-            onRemove={() => {
-              setUploadFile(null);
-              setUploadProgress(0);
-            }}
-            fileList={uploadFile ? [uploadFile] : []}
-          >
-            <p className="text-2xl text-indigo-500">
-              <InboxOutlined />
-            </p>
-            <p className="text-sm text-slate-700 md:text-base">Click or drag file to upload</p>
-            <p className="text-xs text-slate-400 md:text-sm">Support for PDF, DOC, DOCX, and image files</p>
-          </Upload.Dragger>
-
-          {uploadFile && uploadProgress > 0 && (
-            <Progress percent={uploadProgress} status="active" className="mt-4" strokeColor="#4f46e5" />
-          )}
-        </div>
+        {selectedAssignment && <p className="mb-4 text-sm text-ink-2">{selectedAssignment.title}</p>}
+        <Upload.Dragger
+          maxCount={1}
+          beforeUpload={(file) => {
+            setUploadFile(file);
+            return false;
+          }}
+          onRemove={() => {
+            setUploadFile(null);
+            setUploadProgress(0);
+          }}
+          fileList={uploadFile ? [uploadFile] : []}
+        >
+          <div className="flex flex-col items-center py-2">
+            <UploadIcon className="mb-2 h-6 w-6 text-ink-3" aria-hidden="true" />
+            <p className="text-sm font-medium text-ink">Click or drag a file to upload</p>
+            <p className="mt-1 text-xs text-ink-3">PDF, DOC, DOCX or image files</p>
+          </div>
+        </Upload.Dragger>
+        {uploadFile && uploadProgress > 0 && <Progress percent={uploadProgress} className="mt-4" strokeColor={colors.brand} />}
       </Modal>
     </div>
   );
