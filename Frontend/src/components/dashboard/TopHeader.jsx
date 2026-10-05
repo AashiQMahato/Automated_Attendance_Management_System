@@ -53,7 +53,7 @@ const TopHeader = ({ config, page, user, onLogout, collapsed, onToggleCollapsed 
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/80 dark:bg-white/[0.06]" aria-hidden="true" />
 
         <div className="mx-auto flex h-16 w-full max-w-[1680px] items-center gap-3 px-3 sm:px-4 lg:px-6">
-          <img src={logo} alt="" className="h-8 w-8 rounded-lg md:hidden" />
+          <img src={logo} alt="" className="h-8 w-8 md:hidden" />
 
           {/* Sidebar toggle (collapsing only applies at lg+) */}
           <Tooltip label={collapsed ? "Expand sidebar" : "Collapse sidebar"} side="bottom" className="hidden lg:inline-flex">

@@ -209,7 +209,7 @@ const Login = () => {
           className="p-8 md:w-1/2 md:p-12 lg:p-14"
         >
           <div className="flex items-center gap-3 mb-9">
-            <img src={logo} alt="AttendEase logo" className="w-10 h-10 rounded-lg" />
+            <img src={logo} alt="AttendEase logo" className="w-10 h-10" />
             <span className="text-xl font-semibold tracking-tight text-white">AttendEase</span>
           </div>
 

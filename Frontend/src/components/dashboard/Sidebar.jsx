@@ -60,7 +60,7 @@ const Sidebar = ({ config, user, collapsed, onLogout }) => {
       <div
         className={`flex h-16 shrink-0 items-center gap-2.5 border-b border-line px-4 ${collapsed ? "justify-center" : "justify-center lg:justify-start"}`}
       >
-        <img src={logo} alt="" className="h-8 w-8 rounded-lg ring-1 ring-line" />
+        <img src={logo} alt="" className="h-8 w-8" />
         <span className={`text-[15px] font-semibold tracking-[-0.02em] text-ink ${showLabels}`}>AttendEase</span>
       </div>
 
