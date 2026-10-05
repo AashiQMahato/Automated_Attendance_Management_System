@@ -1,4 +1,3 @@
-import React from "react";
 import { useTheme } from "../../theme/ThemeProvider";
 
 // Shared Recharts styling so every chart speaks the dashboard's language.

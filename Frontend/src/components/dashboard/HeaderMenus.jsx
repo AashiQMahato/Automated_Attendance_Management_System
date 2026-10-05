@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CalendarRange, ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import Popover from "../ui/Popover";

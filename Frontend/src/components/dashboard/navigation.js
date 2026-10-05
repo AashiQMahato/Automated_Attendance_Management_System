@@ -43,5 +43,3 @@ export const allItems = (config) => [...config.items, { ...settingsItem, path: c
 
 export const currentPage = (pathname, config) =>
   allItems(config).find((item) => isActivePath(pathname, item, config.base)) || config.items[0];
-
-export const currentPageName = (pathname, config) => currentPage(pathname, config).name;

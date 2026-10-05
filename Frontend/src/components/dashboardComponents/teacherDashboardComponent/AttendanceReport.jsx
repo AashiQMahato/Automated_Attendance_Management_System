@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { colors as palette } from "../../ui/colors";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -61,7 +61,7 @@ const AttendanceReport = () => {
   const [searchParams] = useSearchParams();
   const { colors, axis, grid, cursor } = useChartTheme();
   const subjectsState = useAsync(fetchSubjects, []);
-  const subjects = subjectsState.data || [];
+  const subjects = useMemo(() => subjectsState.data || [], [subjectsState.data]);
   const [selectedSubject, setSelectedSubject] = useState(searchParams.get("subject"));
 
   // Default to the first subject once the list arrives.
@@ -394,7 +394,7 @@ const AttendanceReport = () => {
                   title="Class history"
                   description={`${stats.sessions.length} classes`}
                 />
-                <div className="mt-4 border-t border-line">
+                <div>
                   <DataTable
                     caption="Class history"
                     columns={columns}

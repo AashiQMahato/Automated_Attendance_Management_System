@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { colorFor, colors as palette } from "../../ui/colors";
+import { useMemo, useState } from "react";
+import { colors as palette } from "../../ui/colors";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   CalendarCheck,
@@ -225,7 +225,7 @@ const StudentAttendance = () => {
           title="Class records"
           description={`${entries.length} ${entries.length === 1 ? "record" : "records"}`}
         />
-        <div className="mt-4 border-t border-line">
+        <div>
           <DataTable
             caption="Class attendance records"
             columns={columns}

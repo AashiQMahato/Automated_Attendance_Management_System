@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 
 // Gradient welcome banner. Colors come from the role tokens (--hero-*), so the

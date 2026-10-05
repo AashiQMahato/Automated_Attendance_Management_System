@@ -1,18 +1,7 @@
-
-import './App.css'
-import Webroutes from './components/homeComponent/Webroutes'
-import { ActiveContextState } from './ContextState.jsx'
-
-
+import Webroutes from "./components/homeComponent/Webroutes";
 
 function App() {
-  return (
-    <>
-    <ActiveContextState>
-      <Webroutes />
-      
-    </ActiveContextState>
-    </>
-  )
+  return <Webroutes />;
 }
-export default App
+
+export default App;

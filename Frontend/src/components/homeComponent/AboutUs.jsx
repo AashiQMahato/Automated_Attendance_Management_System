@@ -1,4 +1,3 @@
-import React from 'react';
 import { FaUniversity, FaFlask, FaUsers, FaServer, FaDatabase,FaFaucet } from 'react-icons/fa';
 
 

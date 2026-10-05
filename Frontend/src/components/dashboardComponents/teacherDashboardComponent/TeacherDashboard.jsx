@@ -1,4 +1,3 @@
-import React from "react";
 import DashboardLayout from "../../dashboard/DashboardLayout";
 
 const TeacherDashboard = () => <DashboardLayout role="Teacher" />;

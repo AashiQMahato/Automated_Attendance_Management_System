@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { colors as palette } from "../../ui/colors";
 import { message } from "antd";
 import { AnimatePresence, motion } from "framer-motion";

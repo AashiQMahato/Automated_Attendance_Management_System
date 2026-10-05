@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { colorFor, colors as palette } from "../../ui/colors";
 import { Modal, Upload, message, Progress } from "antd";
 import {

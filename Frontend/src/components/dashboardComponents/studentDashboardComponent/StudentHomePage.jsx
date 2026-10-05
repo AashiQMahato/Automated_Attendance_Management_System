@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ShieldCheck,
@@ -431,7 +431,7 @@ const StudentHomePage = () => {
         </Card>
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="overflow-hidden lg:col-span-2" aria-labelledby="by-subject">
           <CardHeader
             id="by-subject"
@@ -445,7 +445,7 @@ const StudentHomePage = () => {
               </Button>
             }
           />
-          <div className="mt-4 border-t border-line">
+          <div>
             <DataTable
               caption="Attendance by subject"
               columns={subjectColumns}

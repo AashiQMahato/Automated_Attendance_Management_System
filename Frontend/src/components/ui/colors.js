@@ -81,6 +81,3 @@ const hash = (str = "") => [...String(str)].reduce((h, c) => (h * 31 + c.charCod
 
 // Stable color for anything with an id or name (subjects, people).
 export const colorFor = (key) => order[hash(key) % order.length];
-
-// Distinct colors for an ordered list (e.g. subjects in a chart).
-export const colorAt = (index) => order[index % order.length];

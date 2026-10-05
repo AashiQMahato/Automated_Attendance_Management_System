@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { colorFor, colors as palette } from "../../ui/colors";
+import { useEffect, useState } from "react";
+import { colors as palette } from "../../ui/colors";
 import { useSearchParams } from "react-router-dom";
 import { DatePicker, message } from "antd";
 import dayjs from "dayjs";
@@ -229,12 +229,12 @@ const AttendanceSheet = () => {
         </div>
       </Card>
 
-      <div className="grid items-start gap-4 lg:grid-cols-5">
-        <div className="lg:sticky lg:top-20 lg:col-span-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="min-w-0 lg:sticky lg:top-20">
           <ImageUploadForAttendance subjects={subjects} addAttendanceRecord={addAttendanceRecord} />
         </div>
 
-        <Card className="overflow-clip lg:col-span-3" aria-labelledby="roster">
+        <Card className="min-w-0 overflow-clip" aria-labelledby="roster">
           <CardHeader
             id="roster"
             icon={Users}
@@ -255,7 +255,7 @@ const AttendanceSheet = () => {
               )
             }
           />
-          <div className="mt-4 border-t border-line">
+          <div>
             {!selectedSubject ? (
               <EmptyState icon={BookOpen} title="Choose a subject" description="The class roster loads once you pick a subject above." />
             ) : loading && attendanceData.length === 0 ? (

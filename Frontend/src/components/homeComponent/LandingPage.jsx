@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Menu, X, ArrowRight, ArrowUpRight, PlayCircle, CheckCircle2, XCircle,
   Zap, BarChart3, Users, Lock, ScanFace, Database, Cloud,
@@ -929,7 +929,7 @@ function Sparkle() {
 
 export default function LandingPage() {
   return (
-    <div id="top" className="min-h-screen antialiased bg-slate-950 text-slate-100" style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}>
+    <div id="top" className="min-h-screen antialiased bg-slate-950 text-slate-100">
       <GlobalStyle />
       <Navbar />
       <Hero />

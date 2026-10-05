@@ -1,4 +1,3 @@
-import React from "react";
 import { initials } from "../../lib/format";
 import { colorFor, colors } from "./colors";
 

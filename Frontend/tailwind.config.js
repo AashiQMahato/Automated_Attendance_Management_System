@@ -30,17 +30,10 @@ export default {
         danger: token("danger"),
       },
       fontFamily: {
-        ui: [
-          "-apple-system",
-          "BlinkMacSystemFont",
-          '"SF Pro Text"',
-          '"Segoe UI"',
-          "Inter",
-          "Roboto",
-          '"Helvetica Neue"',
-          "Arial",
-          "sans-serif",
-        ],
+        // Geist everywhere (self-hosted via @fontsource-variable, see main.jsx).
+        sans: ['"Geist Variable"', "Geist", "ui-sans-serif", "system-ui", "-apple-system", '"Segoe UI"', "Roboto", "sans-serif"],
+        ui: ['"Geist Variable"', "Geist", "ui-sans-serif", "system-ui", "-apple-system", '"Segoe UI"', "Roboto", "sans-serif"],
+        mono: ['"Geist Mono Variable"', '"Geist Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(17 19 43 / 0.05)",

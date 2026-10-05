@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 
 // Every card fades up the first time it scrolls into view. Reduced-motion
@@ -26,9 +25,10 @@ export const Card = ({ as: Tag = "section", className = "", interactive = false,
   );
 };
 
-// `color` paints the optional icon as a tinted tile from the shared palette.
+// Section header with a hairline divider below it (Apple-style grouped header).
+// `iconTile` paints the optional icon as a tinted tile from the shared palette.
 export const CardHeader = ({ title, description, action, icon: Icon, iconTile, className = "", id }) => (
-  <div className={`flex items-start justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6 ${className}`}>
+  <div className={`flex items-center justify-between gap-4 border-b border-line px-5 py-4 sm:px-6 ${className}`}>
     <div className="flex min-w-0 items-start gap-3">
       {Icon &&
         (iconTile ? (

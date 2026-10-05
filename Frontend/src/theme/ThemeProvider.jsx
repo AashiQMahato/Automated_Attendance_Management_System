@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import { MotionConfig } from "framer-motion";
 import { palette } from "./tokens";
@@ -42,7 +42,7 @@ const buildAntdTheme = (mode) => {
       borderRadiusLG: 16,
       controlHeight: 38,
       fontSize: 14,
-      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontFamily: '"Geist Variable", Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
       boxShadowSecondary: "0 12px 32px -8px rgb(15 23 42 / 0.16), 0 4px 8px -4px rgb(15 23 42 / 0.06)",
       motionDurationMid: "0.2s",
     },

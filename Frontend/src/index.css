@@ -52,7 +52,6 @@
 @layer base {
   .dashboard-root {
     @apply bg-canvas font-ui text-[14px] leading-normal text-ink antialiased;
-    font-feature-settings: "cv11", "ss01";
   }
   .dashboard-root ::selection {
     background: rgb(var(--brand) / 0.18);

@@ -1,4 +1,3 @@
-import React from "react";
 
 const tones = { default: "text-ink", success: "text-success", warning: "text-warning", danger: "text-danger", info: "text-brand" };
 

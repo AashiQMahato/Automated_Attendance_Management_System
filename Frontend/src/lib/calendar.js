@@ -5,7 +5,7 @@ import { dayjs } from "./format";
 // its AD date (the key events are stored under) plus the matching day in the
 // other system, so the same events render in either view.
 
-export const BS_MONTHS = [
+const BS_MONTHS = [
   "Baisakh",
   "Jestha",
   "Ashadh",

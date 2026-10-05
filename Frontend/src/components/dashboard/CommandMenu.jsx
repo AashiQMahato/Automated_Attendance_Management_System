@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -138,7 +138,7 @@ const CommandMenu = ({ open, onClose, config }) => {
                 lastGroup = action.group;
                 const active = i === index;
                 return (
-                  <React.Fragment key={action.id}>
+                  <Fragment key={action.id}>
                     {showGroup && (
                       <li role="presentation" className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-ink-3">
                         {action.group}
@@ -161,7 +161,7 @@ const CommandMenu = ({ open, onClose, config }) => {
                       <span className="flex-1 font-medium">{action.label}</span>
                       {active && <CornerDownLeft className="h-4 w-4 text-ink-3" aria-hidden="true" />}
                     </li>
-                  </React.Fragment>
+                  </Fragment>
                 );
               })}
             </ul>

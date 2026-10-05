@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 
 // iOS-style switch with an optional visible state label.

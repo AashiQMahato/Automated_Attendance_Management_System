@@ -6,7 +6,7 @@ const useAttendanceStore = create(persist(
     attendanceRecords: [],
     
     addAttendanceRecord: (recognitionResults, subjects, cloudinaryUrl) => {
-      set(state => {
+      set(() => {
         const currentDate = new Date();
         const newRecord = {
           date: currentDate.toISOString().split('T')[0],

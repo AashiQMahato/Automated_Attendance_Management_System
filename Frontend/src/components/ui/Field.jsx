@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import { useId } from "react";
 
 export const inputClass =
   "focus-ring h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-ink-3 transition-colors hover:border-brand/40 focus-visible:border-brand/60 focus-visible:ring-offset-0";

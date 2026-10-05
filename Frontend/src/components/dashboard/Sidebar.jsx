@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LogOut } from "lucide-react";
@@ -19,14 +18,14 @@ const NavItem = ({ item, active, collapsed }) => {
     <Link
       to={item.path}
       aria-current={active ? "page" : undefined}
-      className={`focus-ring group relative flex h-9 items-center gap-3 rounded-lg px-2.5 text-[13.5px] font-medium transition-colors duration-150 ${
+      className={`focus-ring group relative flex h-11 items-center gap-3 rounded-xl px-3 text-[14px] font-medium transition-colors duration-150 ${
         active ? "text-ink" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
       } ${collapsed ? "justify-center" : "justify-center lg:justify-start"}`}
     >
       {active && (
         <motion.span
           layoutId="sidebar-active"
-          className="absolute inset-0 rounded-lg bg-surface-2 ring-1 ring-inset ring-line"
+          className="absolute inset-0 rounded-xl bg-surface-2 ring-1 ring-inset ring-line"
           transition={{ type: "spring", bounce: 0, duration: 0.3 }}
           aria-hidden="true"
         />
@@ -65,19 +64,19 @@ const Sidebar = ({ config, user, collapsed, onLogout }) => {
         <span className={`text-[15px] font-semibold tracking-[-0.02em] text-ink ${showLabels}`}>AttendEase</span>
       </div>
 
-      <nav aria-label="Primary" className="flex-1 space-y-0.5 px-3 pt-4">
+      <nav aria-label="Primary" className="flex-1 space-y-1.5 px-3 pt-4">
         <p className={`px-2.5 pb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 ${showLabels}`}>{config.workspace}</p>
         {config.items.map((item) => (
           <NavItem key={item.path} item={item} active={isActivePath(pathname, item, config.base)} collapsed={collapsed} />
         ))}
       </nav>
 
-      <div className="space-y-0.5 border-t border-line px-3 py-3">
+      <div className="space-y-1.5 border-t border-line px-3 py-3">
         <NavItem item={settings} active={isActivePath(pathname, settings, config.base)} collapsed={collapsed} />
         <button
           type="button"
           onClick={onLogout}
-          className={`focus-ring group relative flex h-9 w-full items-center gap-3 rounded-lg px-2.5 text-[13.5px] font-medium text-ink-2 transition-colors hover:bg-danger/10 hover:text-danger ${
+          className={`focus-ring group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-[14px] font-medium text-ink-2 transition-colors hover:bg-danger/10 hover:text-danger ${
             collapsed ? "justify-center" : "justify-center lg:justify-start"
           }`}
         >

@@ -1,4 +1,3 @@
-import React from "react";
 import { Card } from "./Card";
 
 export const Skeleton = ({ className = "" }) => <div className={`skeleton ${className}`} aria-hidden="true" />;

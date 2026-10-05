@@ -1,4 +1,3 @@
-import React from "react";
 import { CloudOff, RefreshCw } from "lucide-react";
 import Button from "./Button";
 

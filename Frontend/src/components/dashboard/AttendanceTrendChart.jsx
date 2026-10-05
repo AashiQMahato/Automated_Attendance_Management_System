@@ -1,4 +1,3 @@
-import React from "react";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartTooltip, chartGradients, useChartTheme } from "../ui/Chart";
 import { ATTENDANCE_THRESHOLD } from "../../lib/format";

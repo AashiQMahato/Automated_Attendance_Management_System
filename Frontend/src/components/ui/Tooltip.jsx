@@ -1,4 +1,3 @@
-import React from "react";
 
 // Lightweight hover/focus tooltip. The trigger must carry its own accessible
 // name (aria-label); the bubble is visual only.

@@ -1,4 +1,3 @@
-import React from "react";
 import LandingPage from "./LandingPage";
 import AboutUs from "./AboutUs";
 import { BrowserRouter, Routes, Route } from "react-router-dom";

@@ -1,4 +1,3 @@
-import React from "react";
 import { dayjs } from "../../lib/format";
 import { colors } from "./colors";
 

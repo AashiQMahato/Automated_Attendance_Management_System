@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import { useId } from "react";
 
 // Tiny dependency-free trend line. `values` may contain nulls (gaps are skipped).
 const Sparkline = ({ values, color = "#6366F1", width = 96, height = 32, className = "" }) => {

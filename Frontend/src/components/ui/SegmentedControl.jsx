@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import { useId } from "react";
 import { motion } from "framer-motion";
 
 // options: [{ value, label, icon? }]

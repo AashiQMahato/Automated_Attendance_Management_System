@@ -15,7 +15,7 @@ const initialLoginState = {
 
 const useLoginStore = create(
     persist(
-        (set,get) => ({
+        (set) => ({
             loginUserData: initialLoginState,
             isLogin: false,
             accessToken: null,

@@ -1,4 +1,3 @@
-import React from "react";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { Card } from "./Card";
 import Sparkline from "./Sparkline";

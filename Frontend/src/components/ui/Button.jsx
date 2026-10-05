@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 import { Loader2 } from "lucide-react";
 
 const variants = {

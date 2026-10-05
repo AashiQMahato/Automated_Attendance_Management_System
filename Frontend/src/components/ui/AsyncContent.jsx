@@ -1,4 +1,3 @@
-import React from "react";
 import { Card } from "./Card";
 import { ErrorState } from "./States";
 import { LoadingRegion } from "./Skeleton";
