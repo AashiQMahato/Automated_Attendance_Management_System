@@ -15,10 +15,10 @@ export const createSubject = asyncHandler(async (req, res) => {
     });
     await subject.save();
 
-    // Get all students and create their subject enrollments
-    const students = await User.find({ role: "Student" });
-    
-    // Create StudentSubject entries for all students
+    // Enroll the students of this subject's semester (new students of that
+    // semester are enrolled at signup; see user.controller).
+    const students = await User.find({ role: "Student", semester: subject.semester });
+
     await StudentSubject.insertMany(
       students.map(student => ({
         student: student._id,
@@ -54,13 +54,9 @@ export const getSubjects = asyncHandler(async (req, res) => {
       subjects = studentSubjects.map(ss => ss.subject);
     }
 
-    if (!subjects || subjects.length === 0) {
-      return res.status(404).json({ 
-        message: `No subjects found for this ${req.user.role.toLowerCase()}`
-      });
-    }
-
-    res.status(200).json({ success: true, data: subjects });
+    // An empty list is a normal state (new teacher / student), not an error.
+    // StudentSubject rows can outlive a deleted subject, so drop nulls.
+    res.status(200).json({ success: true, data: (subjects || []).filter(Boolean) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -70,7 +66,7 @@ export const getSubjectById = asyncHandler(async (req, res) => {
   try {
     let response;
     
-    if (req.user.role === 'TEACHER') {
+    if (req.user.role === 'Teacher') {
       // If teacher, just get the subject details
       const subject = await Subject.findOne({
         _id: req.params.id,

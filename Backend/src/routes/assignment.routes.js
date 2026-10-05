@@ -31,11 +31,9 @@ router
 router
     .route('/:id')
     .get(getAssignmentById)
-    .patch(
-        restrictTo('Teacher'),
-        upload.array('files', 5), // Changed from 'attachments' to 'files'
-        updateAssignment
-    )
+    // The frontend sends PUT; PATCH kept for compatibility.
+    .put(restrictTo('Teacher'), upload.array('files', 5), updateAssignment)
+    .patch(restrictTo('Teacher'), upload.array('files', 5), updateAssignment)
     .delete(
         restrictTo('Teacher'),
         deleteAssignment

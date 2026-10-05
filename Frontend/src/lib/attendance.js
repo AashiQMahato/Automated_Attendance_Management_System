@@ -1,4 +1,4 @@
-import { ATTENDANCE_THRESHOLD, dayjs, percent } from "./format";
+import { ATTENDANCE_THRESHOLD, dayjs, percent, titleCase } from "./format";
 
 const idOf = (v) => (v && typeof v === "object" ? v._id : v);
 
@@ -11,7 +11,7 @@ export const studentEntries = (records, studentId) =>
         id: s._id || `${record._id}-${studentId}`,
         date: record.date,
         subjectId: idOf(record.subject),
-        subject: record.subject?.name || "Subject",
+        subject: titleCase(record.subject?.name) || "Subject",
         status: s.status,
         timestamp: s.timestamp,
       })),
@@ -26,7 +26,7 @@ export const summarize = (entries) => {
 // Per-subject rows, including enrolled subjects with no sessions yet.
 export const bySubject = (entries, subjects = []) => {
   const map = new Map();
-  subjects.forEach((s) => map.set(s._id, { id: s._id, name: s.name, code: s.code, present: 0, absent: 0, total: 0 }));
+  subjects.forEach((s) => map.set(s._id, { id: s._id, name: titleCase(s.name), code: s.code, present: 0, absent: 0, total: 0 }));
   entries.forEach((e) => {
     if (!map.has(e.subjectId)) map.set(e.subjectId, { id: e.subjectId, name: e.subject, code: "", present: 0, absent: 0, total: 0 });
     const row = map.get(e.subjectId);

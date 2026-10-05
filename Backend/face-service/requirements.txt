@@ -1,0 +1,11 @@
+# Python 3.9–3.11 (torch 2.2 has no wheels for newer Python).
+fastapi==0.115.6
+uvicorn==0.30.6
+python-multipart==0.0.20
+ultralytics==8.3.59
+facenet-pytorch==2.6.0
+torch==2.2.2
+torchvision==0.17.2
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+cloudinary==1.42.1

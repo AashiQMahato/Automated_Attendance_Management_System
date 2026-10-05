@@ -58,7 +58,7 @@ const Popover = ({ trigger, children, align = "right", width = "w-72", label }) 
             exit={{ opacity: 0, scale: 0.98, y: -2 }}
             transition={{ type: "spring", bounce: 0, duration: 0.22 }}
             style={{ transformOrigin: align === "right" ? "top right" : "top left" }}
-            className={`absolute top-full z-50 mt-2 ${align === "right" ? "right-0" : "left-0"} ${width} max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-line bg-surface shadow-pop`}
+            className={`absolute top-full z-50 mt-2 ${align === "right" ? "right-0" : "left-0"} ${width} max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-surface shadow-pop`}
           >
             {typeof children === "function" ? children({ close }) : children}
           </motion.div>

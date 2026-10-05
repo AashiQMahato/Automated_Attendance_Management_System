@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Drawer } from "antd";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   AlertTriangle,
+  GraduationCap,
+  TrendingUp,
+  Zap,
   BarChart3,
   BookOpen,
   CalendarCheck,
@@ -18,23 +20,24 @@ import {
 import store from "../../../zustand/loginStore";
 import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
-import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, firstName, formatPercent, greeting, percent } from "../../../lib/format";
+import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, firstName, formatPercent, greeting, percent, titleCase } from "../../../lib/format";
 import { sessionRate, studentRatesFromSessions, trendSeries } from "../../../lib/attendance";
-import PageHeader from "../../ui/PageHeader";
+import HeroBanner, { HeroChip } from "../../ui/HeroBanner";
+import { colorFor, colors as palette } from "../../ui/colors";
 import Button from "../../ui/Button";
 import StatCard from "../../ui/StatCard";
 import StatusBadge from "../../ui/StatusBadge";
 import Avatar from "../../ui/Avatar";
 import SegmentedControl from "../../ui/SegmentedControl";
-import DataTable from "../../ui/DataTable";
 import QuickAction from "../../ui/QuickAction";
 import { Card, CardBody, CardHeader } from "../../ui/Card";
-import { ProgressBar } from "../../ui/Progress";
-import { ChartTooltip, useChartTheme } from "../../ui/Chart";
+import { ProgressBar, ProgressRing } from "../../ui/Progress";
+import { ChartTooltip, chartGradients, useChartTheme } from "../../ui/Chart";
 import { EmptyState } from "../../ui/States";
 import { SkeletonCard, SkeletonStatGrid } from "../../ui/Skeleton";
 import AsyncContent from "../../ui/AsyncContent";
 import AttendanceTrendChart from "../../dashboard/AttendanceTrendChart";
+import SidePanel, { PanelSection } from "../../ui/SidePanel";
 import SubjectSetup from "./SubjectSetup";
 
 const HomePage = () => {
@@ -59,7 +62,8 @@ const HomePage = () => {
 
   const derived = useMemo(() => {
     if (!data) return null;
-    const { subjects, students, sessions } = data;
+    const { students, sessions } = data;
+    const subjects = data.subjects.map((sub) => ({ ...sub, name: titleCase(sub.name) }));
     const subjectById = new Map(subjects.map((s) => [s._id, s]));
     const studentById = new Map(students.map((s) => [s._id, s]));
     const today = dayjs();
@@ -114,59 +118,75 @@ const HomePage = () => {
     const trend = trendSeries(entries, "week", 8);
     const bySubject = classes
       .filter((c) => c.hasData)
-      .map((c) => ({ name: c.code || c.name, full: c.name, rate: Math.round(c.rate * 10) / 10 }));
-
-    const recent = [...sessions]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 6)
-      .map((s) => ({ id: s._id, date: s.date, subject: subjectById.get(s.subjectId)?.name || "Class", ...sessionRate(s) }));
+      .map((c) => ({ id: c._id, name: c.code || c.name, full: c.name, rate: Math.round(c.rate * 10) / 10 }));
 
     const semesters = [...new Set(subjects.map((s) => s.semester).filter(Boolean))].sort((a, b) => a - b);
     const sessionsToday = classes.filter((c) => c.today).length;
 
-    return { totals, classes, lowAttendance, trend, bySubject, recent, semesters, sessionsToday, studentCount: students.length };
+    return { totals, classes, lowAttendance, trend, bySubject, semesters, sessionsToday, studentCount: students.length };
   }, [data]);
 
   const takeAttendance = (subjectId) =>
     navigate(subjectId ? `/teacherdashboard/attendance?subject=${subjectId}` : "/teacherdashboard/attendance");
 
   const header = (
-    <PageHeader
+    <HeroBanner
+      eyebrow={dayjs().format("dddd, MMMM D")}
       title={`${greeting()}, ${firstName(loginUserData?.fullName)}`}
       description="Here's your teaching overview."
-      meta={
+      chips={
         derived && (
           <>
-            <StatusBadge tone="accent" dot={false} icon={BookOpen}>
+            <HeroChip icon={BookOpen}>
               {derived.classes.length} {derived.classes.length === 1 ? "subject" : "subjects"}
-            </StatusBadge>
+            </HeroChip>
             {derived.semesters.length > 0 && (
-              <StatusBadge tone="neutral">
+              <HeroChip icon={GraduationCap}>
                 {derived.semesters.length === 1 ? "Semester" : "Semesters"} {derived.semesters.join(", ")}
-              </StatusBadge>
+              </HeroChip>
             )}
-            <StatusBadge tone={derived.sessionsToday ? "success" : "neutral"}>
-              {derived.sessionsToday} of {derived.classes.length} recorded today
-            </StatusBadge>
+            <HeroChip icon={Users}>{derived.studentCount} students</HeroChip>
           </>
         )
       }
       actions={
         <>
-          <Button icon={BarChart3} onClick={() => navigate("/teacherdashboard/reports")} className="hidden sm:inline-flex">
-            Reports
-          </Button>
-          <Button variant="primary" icon={ScanFace} onClick={() => takeAttendance()}>
+          <Button variant="white" icon={ScanFace} onClick={() => takeAttendance()}>
             Take attendance
           </Button>
+          <Button variant="glass" icon={BarChart3} onClick={() => navigate("/teacherdashboard/reports")}>
+            Reports
+          </Button>
         </>
+      }
+      aside={
+        derived?.classes.length > 0 && (
+          <div className="flex items-center gap-4 rounded-2xl bg-white/10 p-4 ring-1 ring-inset ring-white/20 backdrop-blur lg:flex-col lg:px-6 lg:py-5">
+            <ProgressRing
+              value={(derived.sessionsToday / derived.classes.length) * 100}
+              size={104}
+              stroke={9}
+              tone="white"
+              trackClass="stroke-white/20"
+              label={`${derived.sessionsToday} of ${derived.classes.length} classes recorded today`}
+            >
+              <span className="text-[22px] font-bold tracking-[-0.02em] tabular-nums">
+                {derived.sessionsToday}/{derived.classes.length}
+              </span>
+              <span className="text-[11px] text-white/75">today</span>
+            </ProgressRing>
+            <p className="max-w-[140px] text-[13px] text-white/85 lg:text-center">
+              {derived.sessionsToday === derived.classes.length ? "All classes recorded" : "classes recorded today"}
+            </p>
+          </div>
+        )
       }
     />
   );
 
   if (loading || error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         {header}
         <AsyncContent
           loading={loading}
@@ -175,9 +195,9 @@ const HomePage = () => {
           loadingLabel="Loading your overview"
           errorTitle="We couldn't load your overview"
           skeleton={
-            <div className="space-y-6">
+            <div className="space-y-4">
               <SkeletonStatGrid />
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-4 lg:grid-cols-3">
                 <SkeletonCard lines={4} className="lg:col-span-2" />
                 <SkeletonCard lines={4} />
               </div>
@@ -192,59 +212,22 @@ const HomePage = () => {
     return <SubjectSetup onSubjectCreated={() => reload()} />;
   }
 
-  const { totals, classes, lowAttendance, trend, bySubject, recent, sessionsToday, studentCount } = derived;
+  const { totals, classes, lowAttendance, trend, bySubject, sessionsToday, studentCount } = derived;
   const overallRate = percent(totals.present, totals.total);
   const nextClassId = classes.find((c) => !c.today)?._id;
 
-  const recentColumns = [
-    {
-      key: "subject",
-      header: "Class",
-      render: (r) => (
-        <div className="min-w-0">
-          <p className="truncate font-medium text-ink">{r.subject}</p>
-          <p className="text-xs text-ink-3">{dayjs(r.date).format("ddd, MMM D")}</p>
-        </div>
-      ),
-    },
-    {
-      key: "present",
-      header: "Present",
-      align: "right",
-      render: (r) => (
-        <span className="tabular-nums">
-          {r.present}/{r.total}
-        </span>
-      ),
-    },
-    {
-      key: "rate",
-      header: "Rate",
-      className: "md:w-[220px]",
-      render: (r) => (
-        <div className="flex items-center gap-3">
-          <ProgressBar value={r.rate} tone={attendanceStatus(r.rate).tone} label={`${r.subject} attendance`} className="hidden md:block" />
-          <span className="w-10 shrink-0 text-right font-medium tabular-nums text-ink">{formatPercent(r.rate, 0)}</span>
-        </div>
-      ),
-    },
-    {
-      key: "when",
-      header: "Recorded",
-      hideOnMobile: true,
-      render: (r) => <span className="text-ink-3">{dayjs(r.date).fromNow()}</span>,
-    },
-  ];
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {header}
 
       <section aria-label="Teaching summary" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Total students" icon={Users} value={studentCount} hint="Enrolled across semesters" />
+        <StatCard label="Total students" icon={Users} color="indigo" index={0} value={studentCount} hint="Enrolled across semesters" />
         <StatCard
           label="Average attendance"
           icon={CheckCircle2}
+          color="emerald"
+          index={1}
+          spark={trend.map((t) => t.rate)}
           value={totals.total ? formatPercent(overallRate) : "—"}
           tone={totals.total && overallRate < ATTENDANCE_THRESHOLD ? "warning" : "default"}
           hint={totals.total ? "All recorded classes" : "No classes recorded yet"}
@@ -252,21 +235,31 @@ const HomePage = () => {
         <StatCard
           label="Recorded today"
           icon={CalendarCheck}
+          color="sky"
+          index={2}
           value={`${sessionsToday}/${classes.length}`}
           hint={sessionsToday === classes.length ? "All classes done" : `${classes.length - sessionsToday} pending`}
         />
         <StatCard
           label="Low attendance"
           icon={AlertTriangle}
+          color="amber"
+          index={3}
           value={lowAttendance.length}
           tone={lowAttendance.length ? "warning" : "default"}
           hint={`Below ${ATTENDANCE_THRESHOLD}%`}
         />
       </section>
 
-      <div className="grid items-start gap-6 lg:grid-cols-3">
+      <div className="grid items-start gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2" aria-labelledby="classes">
-          <CardHeader id="classes" title="Your classes" description={`Today, ${dayjs().format("dddd, MMMM D")}`} />
+          <CardHeader
+            id="classes"
+            icon={BookOpen}
+            iconTile={palette.indigo.tile}
+            title="Your classes"
+            description={`Today, ${dayjs().format("dddd, MMMM D")}`}
+          />
           <ul className="mt-3 space-y-1 px-2 pb-2">
             {classes.map((c) => {
               const isNext = c._id === nextClassId;
@@ -274,20 +267,32 @@ const HomePage = () => {
               return (
                 <li
                   key={c._id}
-                  className={`flex flex-col gap-3 rounded-lg px-3 py-3 sm:flex-row sm:items-center ${isNext ? "bg-brand/[0.06] ring-1 ring-inset ring-brand/20" : ""}`}
+                  className={`flex flex-col gap-3 rounded-xl px-3 py-3 transition-colors sm:flex-row sm:items-center ${
+                    isNext
+                      ? "bg-gradient-to-r from-indigo-50 to-violet-50/40 ring-1 ring-inset ring-indigo-200 dark:from-indigo-500/10 dark:to-transparent dark:ring-indigo-500/30"
+                      : "hover:bg-surface-2/70"
+                  }`}
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                        c.today ? "bg-success/10 text-success" : isNext ? "bg-brand/10 text-brand" : "bg-surface-2 text-ink-3"
-                      }`}
+                      className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${palette[colorFor(c._id)].tile}`}
                     >
-                      {c.today ? <CheckCircle2 className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
+                      {(c.code || c.name).slice(0, 2).toUpperCase()}
+                      {c.today && (
+                        <CheckCircle2
+                          className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-surface text-emerald-500"
+                          aria-hidden="true"
+                        />
+                      )}
                     </span>
                     <div className="min-w-0">
                       <p className="flex items-center gap-2 truncate text-sm font-medium text-ink">
                         {c.name}
-                        {isNext && <span className="text-[11px] font-semibold uppercase tracking-wide text-brand">Up next</span>}
+                        {isNext && (
+                          <span className="bg-brand-gradient rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                            Up next
+                          </span>
+                        )}
                       </p>
                       <p className="truncate text-xs text-ink-3">
                         {c.code} · Semester {c.semester} · {c.sessions} {c.sessions === 1 ? "class" : "classes"} recorded
@@ -325,7 +330,7 @@ const HomePage = () => {
         </Card>
 
         <Card aria-labelledby="quick-actions">
-          <CardHeader id="quick-actions" title="Quick actions" />
+          <CardHeader id="quick-actions" icon={Zap} iconTile={palette.violet.tile} title="Quick actions" />
           <div className="space-y-1 p-3">
             <QuickAction
               primary
@@ -336,18 +341,21 @@ const HomePage = () => {
             />
             <QuickAction
               icon={BarChart3}
+              color="violet"
               title="Reports"
               description="Trends and distributions"
               onClick={() => navigate("/teacherdashboard/reports")}
             />
             <QuickAction
               icon={ClipboardList}
+              color="amber"
               title="Assignments"
               description="Create and manage work"
               onClick={() => navigate("/teacherdashboard/assignment")}
             />
             <QuickAction
               icon={CalendarRange}
+              color="rose"
               title="Announce a holiday"
               description="Notify all students"
               onClick={() => navigate("/teacherdashboard/holiday-annoucement")}
@@ -356,10 +364,12 @@ const HomePage = () => {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2" aria-labelledby="overview">
           <CardHeader
             id="overview"
+            icon={TrendingUp}
+            iconTile={palette.emerald.tile}
             title="Attendance overview"
             description={view === "trend" ? "Weekly average, last 8 weeks" : "Average per subject"}
             action={
@@ -388,7 +398,7 @@ const HomePage = () => {
           ) : (
             <CardBody>
               <div className="mb-4 flex items-baseline gap-2">
-                <span className="text-[28px] font-semibold leading-none tracking-[-0.025em] tabular-nums text-ink">
+                <span className="text-brand-gradient text-[30px] font-bold leading-none tracking-[-0.03em] tabular-nums">
                   {formatPercent(overallRate)}
                 </span>
                 <span className="text-[13px] text-ink-3">overall · {totals.total} student check-ins</span>
@@ -399,6 +409,10 @@ const HomePage = () => {
                 <div style={{ height: Math.max(160, bySubject.length * 44 + 30) }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={bySubject} layout="vertical" margin={{ top: 0, right: 12, bottom: 0, left: 0 }} barCategoryGap="30%">
+                      {chartGradients(
+                        colors,
+                        bySubject.map((d) => [palette[colorFor(d.id)].hex, palette[colorFor(d.id)].hex2]),
+                      )}
                       <CartesianGrid stroke={grid.stroke} horizontal={false} />
                       <XAxis type="number" domain={[0, 100]} {...axis} tickFormatter={(v) => `${v}%`} />
                       <YAxis
@@ -413,9 +427,9 @@ const HomePage = () => {
                         cursor={cursor}
                         content={<ChartTooltip labelFormatter={(_l, p) => p?.[0]?.payload.full} formatter={(v) => [`${v}%`, "Average"]} />}
                       />
-                      <Bar dataKey="rate" radius={[0, 4, 4, 0]} maxBarSize={20}>
+                      <Bar dataKey="rate" radius={[3, 8, 8, 3]} maxBarSize={22}>
                         {bySubject.map((d) => (
-                          <Cell key={d.full} fill={d.rate < ATTENDANCE_THRESHOLD ? colors.absent : colors.primary} />
+                          <Cell key={d.full} fill={`url(#g-${palette[colorFor(d.id)].hex.slice(1)})`} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -429,6 +443,8 @@ const HomePage = () => {
         <Card aria-labelledby="attention">
           <CardHeader
             id="attention"
+            icon={AlertTriangle}
+            iconTile={palette.amber.tile}
             title="Needs attention"
             description={`Students below ${ATTENDANCE_THRESHOLD}%`}
             action={lowAttendance.length > 0 && <StatusBadge tone="warning">{lowAttendance.length}</StatusBadge>}
@@ -454,7 +470,7 @@ const HomePage = () => {
                       className="focus-ring flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-2"
                       aria-label={`View ${s.name}, ${formatPercent(s.rate, 0)} attendance`}
                     >
-                      <Avatar name={s.name} size="md" accent={false} />
+                      <Avatar name={s.name} size="md" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-medium text-ink">{s.name}</p>
                         <p className="truncate text-xs text-ink-3">
@@ -484,70 +500,76 @@ const HomePage = () => {
         </Card>
       </div>
 
-      <Card className="overflow-hidden" aria-labelledby="recent">
-        <CardHeader
-          id="recent"
-          title="Recent sessions"
-          description="Latest attendance you've recorded"
-          action={
-            <Button size="sm" variant="ghost" onClick={() => navigate("/teacherdashboard/reports")}>
-              All reports
-            </Button>
-          }
-        />
-        <div className="mt-4 border-t border-line">
-          <DataTable
-            caption="Recent attendance sessions"
-            columns={recentColumns}
-            rows={recent}
-            rowKey="id"
-            pageSize={6}
-            empty={<EmptyState icon={Inbox} title="No sessions yet" description="Recorded classes will appear here." compact />}
-          />
-        </div>
-      </Card>
-
-      <Drawer
-        title={studentDetail?.name}
+      <SidePanel
         open={!!studentDetail}
         onClose={() => setStudentDetail(null)}
-        width={typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 420}
-      >
-        {studentDetail && (
-          <div className="space-y-6 text-sm">
-            <div className="flex items-center gap-3">
-              <Avatar name={studentDetail.name} size="lg" accent={false} />
+        label={studentDetail?.name}
+        width={440}
+        accent="from-amber-50 via-white/40 to-transparent"
+        header={
+          studentDetail && (
+            <div className="flex items-center gap-4">
+              <Avatar name={studentDetail.name} size="lg" className="!h-14 !w-14 !text-base" />
               <div className="min-w-0">
-                <p className="truncate text-ink-2">{studentDetail.email}</p>
-                {studentDetail.semester && <p className="text-xs text-ink-3">Semester {studentDetail.semester}</p>}
+                <h2 className="truncate text-[20px] font-bold tracking-[-0.025em] text-ink">{studentDetail.name}</h2>
+                <p className="truncate text-[13px] text-ink-3">{studentDetail.email}</p>
+                {studentDetail.semester && (
+                  <span className="mt-1.5 inline-flex rounded-full bg-surface px-2 py-0.5 text-[11px] font-semibold text-ink-2 ring-1 ring-line">
+                    Semester {studentDetail.semester}
+                  </span>
+                )}
               </div>
             </div>
-            <div className="rounded-xl border border-line p-4">
-              <p className="text-xs text-ink-3">Attendance in your classes</p>
-              <p className="mt-1 text-[26px] font-semibold tracking-[-0.02em] tabular-nums text-ink">{formatPercent(studentDetail.rate)}</p>
-              <StatusBadge tone={attendanceStatus(studentDetail.rate).tone} className="mt-2">
-                {attendanceStatus(studentDetail.rate).label}
-              </StatusBadge>
+          )
+        }
+        footer={
+          <div className="flex justify-end">
+            <Button onClick={() => setStudentDetail(null)}>Close</Button>
+          </div>
+        }
+      >
+        {studentDetail && (
+          <>
+            <div
+              className={`flex items-center gap-4 rounded-2xl p-4 ${palette[attendanceStatus(studentDetail.rate).tone === "danger" ? "rose" : "amber"].soft}`}
+            >
+              <ProgressRing
+                value={studentDetail.rate}
+                size={76}
+                stroke={7}
+                tone={attendanceStatus(studentDetail.rate).tone}
+                label={`Attendance ${formatPercent(studentDetail.rate)}`}
+              >
+                <span className="text-sm font-bold tabular-nums text-ink">{formatPercent(studentDetail.rate, 0)}</span>
+              </ProgressRing>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">Attendance in your classes</p>
+                <p className="mt-1 text-[15px] font-semibold text-ink">
+                  {studentDetail.present} of {studentDetail.total} classes
+                </p>
+                <StatusBadge tone={attendanceStatus(studentDetail.rate).tone} className="mt-1.5">
+                  {attendanceStatus(studentDetail.rate).label}
+                </StatusBadge>
+              </div>
             </div>
-            <section>
-              <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-3">By subject</h3>
-              <ul className="divide-y divide-line rounded-xl border border-line">
+            <PanelSection title="By subject">
+              <ul className="space-y-2">
                 {studentDetail.breakdown.map((b) => (
-                  <li key={b.subject} className="px-4 py-3">
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="font-medium text-ink">{b.subject}</span>
-                      <span className="tabular-nums text-ink-2">
-                        {b.present}/{b.total} · {formatPercent(b.rate, 0)}
+                  <li key={b.subject} className="rounded-xl border border-line p-3.5">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="truncate text-[13px] font-medium text-ink">{b.subject}</span>
+                      <span className="shrink-0 text-[13px] tabular-nums text-ink-2">
+                        {b.present}/{b.total} · <span className="font-semibold text-ink">{formatPercent(b.rate, 0)}</span>
                       </span>
                     </div>
                     <ProgressBar value={b.rate} tone={attendanceStatus(b.rate).tone} label={`${b.subject} attendance`} />
                   </li>
                 ))}
               </ul>
-            </section>
-          </div>
+            </PanelSection>
+          </>
         )}
-      </Drawer>
+      </SidePanel>
     </div>
   );
 };

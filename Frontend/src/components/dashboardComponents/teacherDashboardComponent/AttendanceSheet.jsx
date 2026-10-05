@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { colorFor, colors as palette } from "../../ui/colors";
 import { useSearchParams } from "react-router-dom";
 import { DatePicker, message } from "antd";
 import dayjs from "dayjs";
-import { BookOpen, CheckCheck, CheckCircle2, Users } from "lucide-react";
+import { BookOpen, CheckCheck, CheckCircle2, Users, ScanFace } from "lucide-react";
 import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
 import useAttendanceStore from "../../../zustand/attendanceStore.js";
-import { formatPercent, percent } from "../../../lib/format";
+import { formatPercent, percent, titleCase } from "../../../lib/format";
 import PageHeader from "../../ui/PageHeader";
 import Button from "../../ui/Button";
 import Avatar from "../../ui/Avatar";
@@ -132,7 +133,7 @@ const AttendanceSheet = () => {
   const totalAbsent = totalStudents - totalPresent;
   const rate = percent(totalPresent, totalStudents);
   const isRecognized = (name) => recognizedStudents.some((rs) => rs?.name && rs.name.toLowerCase().trim() === name.toLowerCase().trim());
-  const subjectName = subjects.find((s) => s._id === selectedSubject)?.name;
+  const subjectName = titleCase(subjects.find((s) => s._id === selectedSubject)?.name);
 
   const columns = [
     {
@@ -141,7 +142,7 @@ const AttendanceSheet = () => {
       sortValue: (r) => r.name.toLowerCase(),
       render: (r) => (
         <div className="flex min-w-0 items-center gap-3">
-          <Avatar name={r.name} size="md" accent={false} />
+          <Avatar name={r.name} size="md" />
           <div className="min-w-0">
             <p className="truncate font-medium text-ink">{r.name}</p>
             <p className="text-xs text-ink-3">Semester {r.semester ?? "—"}</p>
@@ -172,8 +173,13 @@ const AttendanceSheet = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Take attendance" description="Pick a class, optionally run photo recognition, then review and save." />
+    <div className="space-y-4">
+      <PageHeader
+        icon={ScanFace}
+        color="indigo"
+        title="Take attendance"
+        description="Pick a class, optionally run photo recognition, then review and save."
+      />
 
       <Card className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr),220px] lg:grid-cols-[minmax(0,1fr),220px,minmax(0,1.1fr)] lg:items-end">
@@ -223,7 +229,7 @@ const AttendanceSheet = () => {
         </div>
       </Card>
 
-      <div className="grid items-start gap-6 lg:grid-cols-5">
+      <div className="grid items-start gap-4 lg:grid-cols-5">
         <div className="lg:sticky lg:top-20 lg:col-span-2">
           <ImageUploadForAttendance subjects={subjects} addAttendanceRecord={addAttendanceRecord} />
         </div>
@@ -232,6 +238,7 @@ const AttendanceSheet = () => {
           <CardHeader
             id="roster"
             icon={Users}
+            iconTile={palette.emerald.tile}
             title="Roster"
             description={
               subjectName
@@ -265,7 +272,7 @@ const AttendanceSheet = () => {
                 search={{ placeholder: "Search students", getText: (r) => r.name }}
                 mobileRow={(r) => (
                   <div className="flex items-center gap-3">
-                    <Avatar name={r.name} size="md" accent={false} />
+                    <Avatar name={r.name} size="md" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-ink">{r.name}</p>
                       <p className="text-xs text-ink-3">

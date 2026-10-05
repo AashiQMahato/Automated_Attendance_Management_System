@@ -3,11 +3,11 @@ import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import { Readable } from 'stream';
 
-// Cloudinary configuration
+// Credentials come only from the environment (Backend/.env); never hardcode them.
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "aashiqmahato",
-    api_key: process.env.CLOUDINARY_API_KEY || "822293972657394",
-    api_secret: process.env.CLOUDINARY_API_SECRET || "yGUpxVroCkjj40nThHOv56u2CZM"
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Configure multer for memory storage
@@ -64,4 +64,14 @@ const uploadToCloudinary = async (fileBuffer, folder = "assignments") => {
     }
 };
 
-export { upload, uploadToCloudinary };
+// Class photos for face recognition (kept in memory and forwarded to the face service).
+const imageUpload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        if (["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.mimetype)) cb(null, true);
+        else cb(new Error("Please upload a JPG or PNG photo."), false);
+    },
+    limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+export { upload, imageUpload, uploadToCloudinary };

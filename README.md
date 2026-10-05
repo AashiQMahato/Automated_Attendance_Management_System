@@ -1,40 +1,50 @@
-# Automated Attendance Management System
+# AttendEase — Automated Attendance Management System
 
-## Overview
+Attendance, assignments and holidays for students and teachers, with
+face-recognition attendance from a class photo.
 
-**Automated Attendance Management System** is a web app built to automate and simplify attendance tracking for educational institutions and organizations. It features a modern interface and robust logic using JavaScript, CSS, and HTML.
+## Project structure
 
-## Features
-
-- **User Authentication:** Secure login for students, faculty, and admins
-- **Attendance Marking:** Quick, manual or automated attendance options
-- **Role Management:** Custom dashboards for each user role
-- **Reports & Exports:** Detailed attendance reports, export as CSV/PDF
-- **Notifications:** Automated alerts for absentees and summaries
-- **Data Visualization:** Graphs and statistics for attendance trends
-
-## Technology Stack
-
-- **Frontend:** JavaScript, HTML, CSS
-- **Backend:** _(Update with your backend framework, e.g., Node.js, Express.js)_
-- **Database:** _(Update with your database, e.g., MySQL, MongoDB)_
-- **Other:** _(List any additional libraries/tools used)_
-
-## Installation
-
-```bash
-git clone https://github.com/Aashik9567/Automated_Attendance_Management_System.git
-cd Automated_Attendance_Management_System
-# If applicable:
-npm install
-npm start
+```
+Automated_Attendance_Management_System/
+├── Frontend/                 React + Vite + Tailwind (student & teacher dashboards)
+└── Backend/                  Express + MongoDB API
+    ├── src/
+    │   ├── index.js          app entry (routes, CORS, health, error handling)
+    │   ├── controllers/      request handlers
+    │   ├── models/           Mongoose schemas
+    │   ├── routes/           /api/v1/* routers
+    │   ├── middlewares/      auth, role checks, uploads
+    │   ├── services/         faceService.js — starts/proxies the face service
+    │   ├── database/  utils/
+    ├── face-service/         Python (FastAPI) face detection + recognition
+    └── scripts/              setup helpers
 ```
 
-## Usage
+## Run locally
 
-- **Admin:** Manage users, classes, and attendance data
-- **Faculty:** Mark attendance, manage students, view reports
-- **Students:** View personal attendance records and notifications
+```bash
+# Backend (API on :8080; also starts the face service once set up)
+cd Backend
+cp .env.example .env          # fill in MongoDB, JWT and Cloudinary values
+npm install
+npm run face:setup            # once: Python env for face recognition (see face-service/README.md)
+npm run dev
+
+# Frontend (http://localhost:5173)
+cd ../Frontend
+cp .env.example .env          # VITE_API_BASE_URL=http://localhost:8080/api/v1
+npm install
+npm run dev
+```
+
+`GET /api/v1/health` reports the database and face-service status.
+
+## Tech stack
+
+- **Frontend:** React 18, Vite, Tailwind CSS, Ant Design, Recharts, Zustand, Framer Motion
+- **Backend:** Node.js, Express, MongoDB (Mongoose), JWT, Multer, Cloudinary
+- **Face recognition:** Python, FastAPI, YOLOv8 (face detection), FaceNet / InceptionResnetV1 (embeddings)
 
 ## Screenshots
 
@@ -48,15 +58,3 @@ npm start
     <td><img src="https://github.com/user-attachments/assets/7431b102-6781-4267-81f8-2a6054eece57" width="100%"/></td>
   </tr>
 </table>
-
-## Contributing
-
-Contributions are welcome! Open an issue or pull request for suggestions or improvements.
-
-## Acknowledgements
-
-Special thanks to all contributors and open-source resources used.
-
----
-
-_**Note:** Please update backend, database, and technology details as per your actual implementation._

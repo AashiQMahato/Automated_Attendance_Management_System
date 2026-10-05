@@ -1,6 +1,19 @@
 import React, { useMemo, useState } from "react";
+import { colorFor, colors as palette } from "../../ui/colors";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { CalendarCheck, CheckCircle2, Download, Inbox, ListChecks, Percent, UserX, XCircle } from "lucide-react";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Download,
+  Inbox,
+  ListChecks,
+  Percent,
+  UserX,
+  XCircle,
+  UserCheck,
+  BarChart3,
+  ListOrdered,
+} from "lucide-react";
 import store from "../../../zustand/loginStore";
 import api from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
@@ -13,7 +26,7 @@ import StatusBadge from "../../ui/StatusBadge";
 import SegmentedControl from "../../ui/SegmentedControl";
 import DataTable from "../../ui/DataTable";
 import { Card, CardBody, CardHeader } from "../../ui/Card";
-import { ChartTooltip, LegendDot, useChartTheme } from "../../ui/Chart";
+import { ChartTooltip, LegendDot, chartGradients, useChartTheme } from "../../ui/Chart";
 import { EmptyState } from "../../ui/States";
 import { SkeletonCard, SkeletonStatGrid, SkeletonTable } from "../../ui/Skeleton";
 import AsyncContent from "../../ui/AsyncContent";
@@ -45,6 +58,8 @@ const StudentAttendance = () => {
 
   const header = (
     <PageHeader
+      icon={UserCheck}
+      color="emerald"
       title="Attendance"
       description="Every class you've been marked for, across all subjects."
       actions={
@@ -59,7 +74,7 @@ const StudentAttendance = () => {
 
   if (loading || error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         {header}
         <AsyncContent
           loading={loading}
@@ -68,7 +83,7 @@ const StudentAttendance = () => {
           loadingLabel="Loading attendance"
           errorTitle="We couldn't load your attendance"
           skeleton={
-            <div className="space-y-6">
+            <div className="space-y-4">
               <SkeletonStatGrid />
               <SkeletonCard chart />
               <Card className="overflow-hidden">
@@ -118,19 +133,23 @@ const StudentAttendance = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {header}
 
       <section aria-label="Summary" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Total classes" icon={ListChecks} value={stats.total} hint="Recorded so far" />
+        <StatCard label="Total classes" icon={ListChecks} color="indigo" index={0} value={stats.total} hint="Recorded so far" />
         <StatCard
           label="Present"
+          color="emerald"
+          index={1}
           icon={CalendarCheck}
           value={stats.present}
           hint={stats.total ? `${formatPercent(stats.rate, 0)} of classes` : "—"}
         />
         <StatCard
           label="Absent"
+          color="rose"
+          index={2}
           icon={UserX}
           value={stats.absent}
           tone={stats.absent && status.tone !== "success" ? status.tone : "default"}
@@ -138,6 +157,8 @@ const StudentAttendance = () => {
         />
         <StatCard
           label="Attendance rate"
+          color="violet"
+          index={3}
           icon={Percent}
           value={stats.total ? formatPercent(stats.rate) : "—"}
           tone={status.tone === "warning" || status.tone === "danger" ? status.tone : "default"}
@@ -148,6 +169,8 @@ const StudentAttendance = () => {
       <Card aria-labelledby="by-subject-chart">
         <CardHeader
           id="by-subject-chart"
+          icon={BarChart3}
+          iconTile={palette.emerald.tile}
           title="By subject"
           description="Present and absent classes per subject"
           action={
@@ -170,8 +193,9 @@ const StudentAttendance = () => {
             <div style={{ height: Math.max(200, Math.min(320, subjectStats.length * 56 + 60)) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={subjectStats} margin={{ top: 4, right: 4, bottom: 0, left: -18 }} barGap={4} barCategoryGap="30%">
+                  {chartGradients(colors)}
                   <CartesianGrid {...grid} />
-                  <XAxis dataKey="name" {...axis} interval={0} tickFormatter={(v) => (v.length > 14 ? `${v.slice(0, 13)}…` : v)} />
+                  <XAxis dataKey="name" {...axis} interval={0} tickFormatter={(v) => (v.length > 22 ? `${v.slice(0, 21)}…` : v)} />
                   <YAxis {...axis} allowDecimals={false} />
                   <Tooltip
                     cursor={cursor}
@@ -184,8 +208,8 @@ const StudentAttendance = () => {
                       />
                     }
                   />
-                  <Bar dataKey="present" name="Present" fill={colors.present} radius={[4, 4, 0, 0]} maxBarSize={24} />
-                  <Bar dataKey="absent" name="Absent" fill={colors.absent} radius={[4, 4, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey="present" name="Present" fill="url(#g-present)" radius={[8, 8, 3, 3]} maxBarSize={26} />
+                  <Bar dataKey="absent" name="Absent" fill="url(#g-absent)" radius={[8, 8, 3, 3]} maxBarSize={26} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -194,7 +218,13 @@ const StudentAttendance = () => {
       </Card>
 
       <Card className="overflow-hidden" aria-labelledby="records">
-        <CardHeader id="records" title="Class records" description={`${entries.length} ${entries.length === 1 ? "record" : "records"}`} />
+        <CardHeader
+          id="records"
+          icon={ListOrdered}
+          iconTile={palette.indigo.tile}
+          title="Class records"
+          description={`${entries.length} ${entries.length === 1 ? "record" : "records"}`}
+        />
         <div className="mt-4 border-t border-line">
           <DataTable
             caption="Class attendance records"

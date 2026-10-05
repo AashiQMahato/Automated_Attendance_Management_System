@@ -7,8 +7,6 @@ import { upload, uploadToCloudinary } from '../middlewares/fileUpload.middleware
 
 const createAssignment = async (req, res) => {
     try {
-        console.log("Authenticated User:", req.user);
-
         if (!req.user) {
             throw new apiError(401, "User not authenticated");
         }
@@ -50,14 +48,19 @@ const createAssignment = async (req, res) => {
 
 const submitAssignment = async (req, res) => {
     try {
-        const file = req.files[0]; // Get first file
-        
+        const file = req.files?.[0];
+        if (!file) {
+            return res.status(400).json({ success: false, message: "Please attach a file to submit" });
+        }
+
         // Upload to cloudinary
         const cloudinaryResponse = await uploadToCloudinary(file.buffer, 'submissions');
         
         // Update assignment with submission
+        // Route is /:id/submit — this previously read req.params.assignmentId
+        // (always undefined), so submissions were silently never saved.
         const assignment = await Assignment.findByIdAndUpdate(
-            req.params.assignmentId,
+            req.params.id,
             {
                 $push: {
                     submissions: {
@@ -69,6 +72,10 @@ const submitAssignment = async (req, res) => {
             },
             { new: true }
         );
+
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: "Assignment not found" });
+        }
 
         res.status(200).json({
             success: true,
@@ -144,8 +151,9 @@ const updateAssignment = asyncHandler(async (req, res) => {
         throw new apiError(403, "Unauthorized to update this assignment");
     }
 
-    // Add new files if uploaded
-    const newAttachments = req.files?.map(file => file.path) || [];
+    // Files are kept in memory by multer (no file.path), so upload them like createAssignment does.
+    const uploaded = await Promise.all((req.files || []).map(file => uploadToCloudinary(file.buffer)));
+    const newAttachments = uploaded.map(response => response.secure_url);
     const attachments = [...assignment.attachments, ...newAttachments];
 
     const updatedAssignment = await Assignment.findByIdAndUpdate(
@@ -194,7 +202,7 @@ const gradeSubmission = asyncHandler(async (req, res) => {
     const { id, submissionId } = req.params;
     const { grade, feedback } = req.body;
 
-    if (!grade || grade < 0 || grade > 100) {
+    if (grade === undefined || grade === null || grade === "" || Number(grade) < 0 || Number(grade) > 100) {
         throw new apiError(400, "Valid grade is required");
     }
 

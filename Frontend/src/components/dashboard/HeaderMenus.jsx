@@ -1,23 +1,26 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, CalendarRange, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { Bell, CalendarRange, ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import Popover from "../ui/Popover";
+import Tooltip from "../ui/Tooltip";
 import Avatar from "../ui/Avatar";
 import SegmentedControl from "../ui/SegmentedControl";
 import { useTheme } from "../../theme/ThemeProvider";
 import api from "../../lib/api";
-import { dayjs } from "../../lib/format";
+import { dayjs, titleCase } from "../../lib/format";
 
 const iconButton =
-  "focus-ring relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink";
+  "focus-ring relative inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-2 transition-colors hover:bg-surface hover:text-brand hover:shadow-xs";
 
 export const ThemeToggle = () => {
   const { resolved, setPreference } = useTheme();
   const next = resolved === "dark" ? "light" : "dark";
   return (
-    <button type="button" onClick={() => setPreference(next)} aria-label={`Switch to ${next} mode`} className={iconButton}>
-      {resolved === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
-    </button>
+    <Tooltip label={`${next === "dark" ? "Dark" : "Light"} mode`} side="bottom">
+      <button type="button" onClick={() => setPreference(next)} aria-label={`Switch to ${next} mode`} className={iconButton}>
+        {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
+    </Tooltip>
   );
 };
 
@@ -82,8 +85,13 @@ export const NotificationsMenu = ({ holidaysPath }) => {
           aria-label={unread ? `Announcements, ${unread} new` : "Announcements"}
           className={iconButton}
         >
-          <Bell className="h-[18px] w-[18px]" />
-          {unread > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand ring-2 ring-canvas" aria-hidden="true" />}
+          <Bell className="h-4 w-4" />
+          {unread > 0 && (
+            <span className="absolute right-1.5 top-1.5 flex h-2 w-2" aria-hidden="true">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60 motion-reduce:hidden" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-canvas" />
+            </span>
+          )}
         </button>
       )}
     >
@@ -112,11 +120,11 @@ export const NotificationsMenu = ({ holidaysPath }) => {
                       }}
                       className="focus-ring flex w-full gap-3 px-4 py-2.5 text-left hover:bg-surface-2"
                     >
-                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300">
                         <CalendarRange className="h-3.5 w-3.5" aria-hidden="true" />
                       </span>
                       <span className="min-w-0">
-                        <span className="block truncate text-[13px] font-medium text-ink">{h.title}</span>
+                        <span className="block truncate text-[13px] font-medium text-ink">{titleCase(h.title)}</span>
                         <span className="block text-xs text-ink-3">
                           {ongoing ? "Ongoing · ends " : ""}
                           {dayjs(ongoing ? h.endDate : h.startDate).format("ddd, MMM D")}
@@ -142,8 +150,21 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
       label="Account"
       width="w-72"
       trigger={(props) => (
-        <button type="button" {...props} aria-label="Account menu" className="focus-ring rounded-full">
-          <Avatar name={user.fullName} src={user.avatar} size="md" />
+        <button
+          type="button"
+          {...props}
+          aria-label="Account menu"
+          className="focus-ring flex items-center gap-2.5 rounded-full p-0.5 transition-colors hover:bg-surface-2 lg:border lg:border-line lg:bg-surface-2/70 lg:py-1 lg:pl-1 lg:pr-3"
+        >
+          <Avatar name={user.fullName} src={user.avatar} size="md" className="ring-2 ring-surface" />
+          <span className="hidden min-w-0 text-left leading-tight lg:block">
+            <span className="block max-w-[140px] truncate text-[13px] font-semibold text-ink">{user.fullName}</span>
+            <span className="block text-[11px] text-ink-3">{user.role}</span>
+          </span>
+          <ChevronDown
+            className={`hidden h-4 w-4 text-ink-3 transition-transform duration-200 lg:block ${props["aria-expanded"] ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
         </button>
       )}
     >
@@ -154,7 +175,7 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-ink">{user.fullName}</p>
               <p className="truncate text-xs text-ink-3">{user.email}</p>
-              <p className="mt-0.5 text-xs font-medium text-accent">
+              <p className="mt-1 inline-flex rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
                 {user.role}
                 {user.role === "Student" && user.semester ? ` · Semester ${user.semester}` : ""}
               </p>

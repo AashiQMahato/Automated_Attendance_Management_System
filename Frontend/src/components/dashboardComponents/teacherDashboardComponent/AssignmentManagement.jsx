@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { colorFor, colors as palette } from "../../ui/colors";
 import { DatePicker, Form, Input, Modal, Select, Upload, message } from "antd";
 import { ClipboardList, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
-import { dueStatus } from "../../../lib/format";
+import { dueStatus, titleCase } from "../../../lib/format";
 import PageHeader from "../../ui/PageHeader";
 import Button from "../../ui/Button";
 import StatusBadge from "../../ui/StatusBadge";
@@ -104,9 +105,10 @@ const AssignmentManagement = () => {
       sortValue: (r) => r.title.toLowerCase(),
       render: (r) => (
         <div className="min-w-0">
-          <p className="truncate font-medium text-ink">{r.title}</p>
-          <p className="flex items-center gap-1.5 text-xs text-ink-3">
-            {r.subject?.name}
+          <p className="truncate font-medium text-ink">{titleCase(r.title)}</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-3">
+            <span className={`h-2 w-2 rounded-full ${palette[colorFor(r.subject?._id)].dot}`} aria-hidden="true" />
+            {titleCase(r.subject?.name)}
             {r.attachments?.length > 0 && (
               <span className="inline-flex items-center gap-0.5">
                 · <Paperclip className="h-3 w-3" aria-hidden="true" />
@@ -163,8 +165,10 @@ const AssignmentManagement = () => {
   const label = (text) => <span className="text-[13px] font-medium text-ink-2">{text}</span>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
+        icon={ClipboardList}
+        color="amber"
         title="Assignments"
         description="Create, manage and track student assignments."
         actions={
@@ -222,7 +226,7 @@ const AssignmentManagement = () => {
           <Form.Item name="subject" label={label("Subject")} rules={[{ required: true, message: "Please select a subject" }]}>
             <Select
               placeholder="Select subject"
-              options={subjects.map((s) => ({ value: s._id, label: s.name }))}
+              options={subjects.map((s) => ({ value: s._id, label: titleCase(s.name) }))}
               loading={subjectsState.loading}
             />
           </Form.Item>
@@ -249,7 +253,9 @@ const AssignmentManagement = () => {
       </Modal>
 
       <Modal title="Delete assignment?" open={!!assignmentToDelete} onCancel={() => setAssignmentToDelete(null)} footer={null} width={420}>
-        <p className="text-sm text-ink-2">“{assignmentToDelete?.title}” and its submissions will be removed. This can't be undone.</p>
+        <p className="text-sm text-ink-2">
+          “{titleCase(assignmentToDelete?.title)}” and its submissions will be removed. This can't be undone.
+        </p>
         <div className="mt-6 flex justify-end gap-2">
           <Button onClick={() => setAssignmentToDelete(null)}>Cancel</Button>
           <Button variant="danger" icon={Trash2} loading={deleting} onClick={handleDelete}>

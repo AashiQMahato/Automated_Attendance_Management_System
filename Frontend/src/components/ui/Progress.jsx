@@ -5,7 +5,7 @@ const barTones = {
   success: "bg-success",
   warning: "bg-warning",
   danger: "bg-danger",
-  info: "bg-brand",
+  info: "bg-brand-gradient",
   accent: "bg-accent",
   neutral: "bg-ink-3",
 };
@@ -17,6 +17,7 @@ const ringTones = {
   info: "text-brand",
   accent: "text-accent",
   neutral: "text-ink-3",
+  white: "text-white",
 };
 
 export const ProgressBar = ({ value = 0, tone = "info", label, className = "" }) => {
@@ -40,14 +41,14 @@ export const ProgressBar = ({ value = 0, tone = "info", label, className = "" })
   );
 };
 
-export const ProgressRing = ({ value = 0, size = 120, stroke = 10, tone = "info", label, children }) => {
+export const ProgressRing = ({ value = 0, size = 120, stroke = 10, tone = "info", label, trackClass = "stroke-surface-2", children }) => {
   const clamped = Math.max(0, Math.min(100, value));
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
     <div className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-2" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={trackClass} />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
