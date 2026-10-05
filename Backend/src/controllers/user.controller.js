@@ -1,6 +1,8 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { apiError } from "../utils/errorHandler.js";
 import { User } from "../models/user.model.js";
+import { Subject } from "../models/subject.model.js";
+import { StudentSubject } from "../models/studentSubject.model.js";
 import apiResponse from "../utils/apiResponse.js";
 import jwt from 'jsonwebtoken';
 
@@ -63,7 +65,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const signupUser = asyncHandler(async (req, res) => {
     const { fullName, semester, email, password,role } = req.body;
     if (!fullName || !email || !password || !role || !semester) {
-        throw new apiError(401, "please provide all the details ");
+        throw new apiError(400, "please provide all the details ");
     }
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -80,6 +82,16 @@ const signupUser = asyncHandler(async (req, res) => {
     if (!createdUser) {
         throw new apiError(500, "Something went wrong while creating user");
     }
+
+    // Students who join after a subject was created still need enrolling.
+    if (createdUser.role === "Student") {
+        const subjects = await Subject.find({ semester: createdUser.semester }).select("_id");
+        if (subjects.length) {
+            await StudentSubject.insertMany(
+                subjects.map((s) => ({ student: createdUser._id, subject: s._id, semester: createdUser.semester }))
+            );
+        }
+    }
     
    
     return res.status(200).json(new apiResponse(200,"user registered successfully",createdUser));
@@ -87,7 +99,7 @@ const signupUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async(req,res)=>{
   const { email, password } = req.body;
-  if (!(email || password )) {
+  if (!email || !password) {
       throw new apiError(400, "please provide all the details ");
   }
   const user = await User.findOne({ email });

@@ -1,0 +1,11 @@
+# Virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# Model weights (large) and biometric data (students' photos and embeddings).
+# Never commit these; keep them on the machine/server that runs the service.
+models/*
+!models/.gitkeep
+data/*
+!data/.gitkeep

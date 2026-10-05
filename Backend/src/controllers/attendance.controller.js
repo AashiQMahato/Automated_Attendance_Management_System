@@ -2,6 +2,8 @@ import { Attendance } from '../models/attendance.model.js';
 import { StudentSubject } from '../models/studentSubject.model.js';
 import { Subject } from '../models/subject.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import { apiError } from '../utils/errorHandler.js';
+import { recognizeFaces } from '../services/faceService.js';
 
 export const getStudentAttendance = asyncHandler(async (req, res) => {
     try {
@@ -23,10 +25,16 @@ export const markAttendance = async (req, res) => {
             return res.status(400).json({ message: 'Invalid attendance data' });
         }
 
-        // Check for existing attendance on the same date and subject
+        // One session per subject per day. (Compare the whole day: stored
+        // dates include a time, so an exact-midnight match never fires.)
+        const day = date ? new Date(date) : new Date();
+        const dayStart = new Date(day);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(day);
+        dayEnd.setHours(23, 59, 59, 999);
         const existingAttendance = await Attendance.findOne({
             subject: subjectId,
-            date: new Date(date).setHours(0, 0, 0, 0)
+            date: { $gte: dayStart, $lte: dayEnd }
         });
 
         if (existingAttendance) {
@@ -70,6 +78,15 @@ export const markAttendance = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+// Recognize students in a class photo via the face service.
+export const recognizeAttendancePhoto = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new apiError(400, 'Please attach a class photo');
+    }
+    const result = await recognizeFaces(req.file);
+    res.status(200).json(result);
+});
 
 // Get attendance by subject
 export const getAttendanceBySubject = asyncHandler(async (req, res) => {
