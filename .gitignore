@@ -1,6 +1,1 @@
 .DS_Store
-
-# Legacy standalone face-recognition folders (superseded by Backend/face-service).
-# They contain virtualenvs, a hardcoded secret and students' face photos — never commit.
-/Face detection api/
-/Facenet recognization/
