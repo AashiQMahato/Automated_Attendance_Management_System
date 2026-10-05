@@ -3,7 +3,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { apiError } from "../utils/errorHandler.js";
 import { Assignment } from "../models/assignment.model.js";
 import apiResponse from "../utils/apiResponse.js";
-import { upload, uploadToCloudinary } from '../middlewares/fileUpload.middleware.js';
+import { uploadToCloudinary } from '../middlewares/fileUpload.middleware.js';
 
 const createAssignment = async (req, res) => {
     try {

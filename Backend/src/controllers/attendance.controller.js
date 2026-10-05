@@ -91,7 +91,6 @@ export const recognizeAttendancePhoto = asyncHandler(async (req, res) => {
 // Get attendance by subject
 export const getAttendanceBySubject = asyncHandler(async (req, res) => {
     const { subjectId } = req.params;
-    const userId = req.user._id; // Get the authenticated user's ID
 
     
     // Verify the subject exists
@@ -184,31 +183,6 @@ export const deleteAttendance = async (req, res) => {
         await Attendance.findByIdAndDelete(attendanceId);
 
         res.status(200).json({ message: 'Attendance record deleted successfully' });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-// Get student's attendance percentage by subject
-export const getStudentAttendanceBySubject = async (req, res) => {
-    try {
-        const { studentId, subjectId } = req.params;
-        const studentSubject = await StudentSubject.findOne({
-            student: studentId,
-            subject: subjectId
-        });
-
-        if (!studentSubject) {
-            return res.status(404).json({ message: 'No attendance records found' });
-        }
-
-        const attendancePercentage = (studentSubject.attendedClasses / studentSubject.totalClasses) * 100;
-
-        res.status(200).json({
-            totalClasses: studentSubject.totalClasses,
-            attendedClasses: studentSubject.attendedClasses,
-            attendancePercentage: attendancePercentage.toFixed(2)
-        });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

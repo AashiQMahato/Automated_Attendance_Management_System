@@ -19,7 +19,7 @@ let stopping = false;
 
 const log = (...args) => console.log("[face-service]", ...args);
 
-export const faceServiceUrl = () => (process.env.FACE_SERVICE_URL || `http://127.0.0.1:${PORT}`).replace(/\/+$/, "");
+const faceServiceUrl = () => (process.env.FACE_SERVICE_URL || `http://127.0.0.1:${PORT}`).replace(/\/+$/, "");
 
 const authHeaders = () => (process.env.FACE_SERVICE_KEY ? { "X-Face-Service-Key": process.env.FACE_SERVICE_KEY } : {});
 
@@ -75,7 +75,7 @@ const spawnService = (python) => {
     });
 };
 
-export const stopFaceService = () => {
+const stopFaceService = () => {
     stopping = true;
     if (child) child.kill("SIGTERM");
 };
