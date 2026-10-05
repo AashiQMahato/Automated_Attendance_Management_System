@@ -8,4 +8,7 @@ torch==2.2.2
 torchvision==0.17.2
 numpy==1.26.4
 opencv-python-headless==4.10.0.84
+pillow-heif==0.18.0  # HEIC/HEIF (iPhone) photos
 cloudinary==1.42.1
+# macOS system Python 3.9 ships LibreSSL; urllib3 v2 warns on it.
+urllib3<2

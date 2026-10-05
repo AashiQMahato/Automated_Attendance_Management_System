@@ -19,6 +19,7 @@
     "antd": "^5.22.2",
     "axios": "^1.7.2",
     "framer-motion": "^11.18.2",
+    "heic2any": "^0.0.4",
     "lucide-react": "^0.460.0",
     "moment": "^2.30.1",
     "nepali-date-converter": "^3.3.2",

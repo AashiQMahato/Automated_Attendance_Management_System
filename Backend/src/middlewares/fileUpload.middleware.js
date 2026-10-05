@@ -64,12 +64,16 @@ const uploadToCloudinary = async (fileBuffer, folder = "assignments") => {
     }
 };
 
-// Class photos for face recognition (kept in memory and forwarded to the face service).
+// Class photos for face recognition (kept in memory and forwarded to the face
+// service, which also converts HEIC). Browsers often send HEIC with an empty or
+// generic MIME type, so fall back to the file extension.
+const PHOTO_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"];
 const imageUpload = multer({
     storage,
     fileFilter: (req, file, cb) => {
-        if (["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.mimetype)) cb(null, true);
-        else cb(new Error("Please upload a JPG or PNG photo."), false);
+        const heicByName = /\.(heic|heif)$/i.test(file.originalname || "");
+        if (PHOTO_TYPES.includes(file.mimetype) || heicByName) cb(null, true);
+        else cb(new Error("Please upload a JPG, PNG or HEIC photo."), false);
     },
     limits: { fileSize: 10 * 1024 * 1024 },
 });

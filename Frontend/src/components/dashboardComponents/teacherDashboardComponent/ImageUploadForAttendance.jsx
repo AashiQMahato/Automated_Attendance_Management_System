@@ -2,8 +2,9 @@ import React, { useRef, useState } from "react";
 import { colors as palette } from "../../ui/colors";
 import { message } from "antd";
 import { AnimatePresence, motion } from "framer-motion";
-import { Camera, ImagePlus, ScanFace, Sparkles, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, ScanFace, Sparkles, X } from "lucide-react";
 import api from "../../../lib/api";
+import { heicToJpeg, isHeic, isImageFile } from "../../../lib/heic";
 import Button from "../../ui/Button";
 import { Card, CardHeader } from "../../ui/Card";
 import { ProgressBar } from "../../ui/Progress";
@@ -15,7 +16,7 @@ const CameraCapture = ({ onCapture, onClose }) => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file && file.type.startsWith("image/")) onCapture(file);
+    if (isImageFile(file)) onCapture(file);
     else message.error("Please capture an image file.");
   };
 
@@ -52,7 +53,7 @@ const CameraCapture = ({ onCapture, onClose }) => {
         <Button variant="primary" size="lg" icon={Camera} className="mt-6 w-full" onClick={() => fileInputRef.current.click()}>
           Open camera
         </Button>
-        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+        <input ref={fileInputRef} type="file" accept="image/*,.heic,.heif" capture="environment" className="hidden" onChange={handleFileChange} />
       </motion.div>
     </motion.div>
   );
@@ -66,22 +67,44 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [converting, setConverting] = useState(false);
   const inputRef = useRef(null);
 
-  const handleFile = (file) => {
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      message.error("Image size should not exceed 5MB");
+  const MAX_BYTES = 10 * 1024 * 1024; // matches the backend limit
+
+  const handleFile = async (picked) => {
+    if (!picked) return;
+    if (!isImageFile(picked)) {
+      message.error("Please upload a JPG, PNG or HEIC photo");
       return;
     }
-    if (!file.type.startsWith("image/")) {
-      message.error("Please upload an image file");
+    setResults(null);
+    setError(null);
+
+    let file = picked;
+    let previewable = true;
+    if (isHeic(picked)) {
+      // Convert iPhone HEIC photos to JPEG, then continue as usual.
+      setConverting(true);
+      setImagePreviewUrl(null);
+      try {
+        file = await heicToJpeg(picked);
+        message.success("HEIC photo converted to JPG");
+      } catch (err) {
+        // The server can still convert it; we just can't preview it here.
+        console.warn("HEIC conversion failed, uploading original", err);
+        previewable = false;
+      } finally {
+        setConverting(false);
+      }
+    }
+
+    if (file.size > MAX_BYTES) {
+      message.error("Image size should not exceed 10MB");
       return;
     }
     setImage(file);
-    setResults(null);
-    setError(null);
-    setImagePreviewUrl(URL.createObjectURL(file));
+    setImagePreviewUrl(previewable ? URL.createObjectURL(file) : "heic-no-preview");
   };
 
   const clearImage = () => {
@@ -174,9 +197,23 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
           )}
         </AnimatePresence>
 
-        {imagePreviewUrl ? (
+        {converting ? (
+          <div className="flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border border-line bg-surface-2" role="status">
+            <Loader2 className="h-6 w-6 animate-spin text-brand" aria-hidden="true" />
+            <p className="text-sm font-medium text-ink">Converting HEIC to JPG…</p>
+            <p className="text-xs text-ink-3">This takes a moment for large iPhone photos.</p>
+          </div>
+        ) : imagePreviewUrl ? (
           <div className="relative overflow-hidden rounded-lg border border-line bg-surface-2">
-            <img src={imagePreviewUrl} alt="Selected class photo" className="aspect-video w-full object-contain" />
+            {imagePreviewUrl === "heic-no-preview" ? (
+              <div className="flex aspect-video flex-col items-center justify-center gap-1 px-4 text-center">
+                <ImagePlus className="h-6 w-6 text-ink-3" aria-hidden="true" />
+                <p className="text-sm font-medium text-ink">{image?.name}</p>
+                <p className="text-xs text-ink-3">Preview unavailable — it will be converted on the server.</p>
+              </div>
+            ) : (
+              <img src={imagePreviewUrl} alt="Selected class photo" className="aspect-video w-full object-contain" />
+            )}
             {!loading && (
               <button
                 type="button"
@@ -220,7 +257,7 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
               <ImagePlus className="h-5 w-5" aria-hidden="true" />
             </span>
             <p className="text-sm font-medium text-ink">Drop a class photo here</p>
-            <p className="mt-0.5 text-xs text-ink-3">JPG, PNG or HEIC · up to 5MB</p>
+            <p className="mt-0.5 text-xs text-ink-3">JPG, PNG or HEIC · up to 10MB</p>
           </div>
         )}
 
@@ -248,7 +285,7 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
           ref={inputRef}
           id="image-upload"
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           className="sr-only"
           tabIndex={-1}
           aria-hidden="true"

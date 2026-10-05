@@ -23,6 +23,10 @@ export const faceServiceUrl = () => (process.env.FACE_SERVICE_URL || `http://127
 
 const authHeaders = () => (process.env.FACE_SERVICE_KEY ? { "X-Face-Service-Key": process.env.FACE_SERVICE_KEY } : {});
 
+// Model location the Python side will use (mirrors face-service/app/config.py).
+const modelPath = () =>
+    process.env.FACE_YOLO_MODEL ? path.resolve(process.env.FACE_YOLO_MODEL) : path.join(SERVICE_DIR, "models", "yolov8_face.pt");
+
 const resolvePython = () => {
     if (process.env.FACE_SERVICE_PYTHON) return process.env.FACE_SERVICE_PYTHON;
     const venvPython =
@@ -95,6 +99,12 @@ export const startFaceService = async () => {
         log("not set up — run `npm run face:setup` once to enable face recognition");
         return;
     }
+    // Don't spend time/memory loading PyTorch when the model isn't there yet.
+    if (!existsSync(modelPath())) {
+        log(`model missing at ${path.relative(process.cwd(), modelPath())} — face recognition disabled.`);
+        log("Copy yolov8_face.pt into face-service/models/ (and known_*.npy into face-service/data/), then restart. See face-service/README.md");
+        return;
+    }
     log(`starting on port ${PORT}`);
     spawnService(python);
 
@@ -130,7 +140,12 @@ export const recognizeFaces = async (file) => {
     if (!res.ok) {
         // 4xx from the service (bad image, too large) are the client's; anything else is ours.
         const status = res.status >= 400 && res.status < 500 && res.status !== 401 ? res.status : res.status === 503 ? 503 : 502;
-        throw new apiError(status, body.detail || "Face recognition failed");
+        // Service-side details (e.g. file paths) stay in the server log, not the client response.
+        if (status >= 500) log(`recognize failed (${res.status}): ${body.detail || "unknown error"}`);
+        throw new apiError(
+            status,
+            status === 503 ? "Face recognition is not available right now" : status >= 500 ? "Face recognition failed" : body.detail || "Invalid image",
+        );
     }
     return body;
 };
