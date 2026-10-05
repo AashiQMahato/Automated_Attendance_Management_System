@@ -5,6 +5,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { message } from 'antd';
 import axios from 'axios';
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "../../../config/env";
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const TeacherDashboard = () => {
   const handleLogout = async () => {
     try {
       const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(`${loginUserData.baseURL}/users/logout`, {}, {
+      const response = await axios.post(`${API_BASE_URL}/users/logout`, {}, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }

@@ -5,6 +5,7 @@ import { message } from "antd";
 import { motion, AnimatePresence } from 'framer-motion';
 import useAttendanceStore from "../../../zustand/attendanceStore.js";
 import { ReactTyped } from 'react-typed';
+import { FACE_RECOGNITION_URL } from "../../../config/env";
 
 const CameraCapture = ({ onCapture, onClose }) => {
     const fileInputRef = useRef(null);
@@ -128,7 +129,7 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
             formData.append('file', image);
 
             const response = await axios.post(
-                'http://localhost:8000/upload_and_recognize/',
+                `${FACE_RECOGNITION_URL}/upload_and_recognize/`,
                 formData,
                 {
                     headers: {

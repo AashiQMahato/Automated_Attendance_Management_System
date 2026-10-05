@@ -3,15 +3,14 @@ import { Users, BookOpen } from 'lucide-react';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from 'framer-motion';
-import store from '../../../zustand/loginStore';
 import useAttendanceStore from "../../../zustand/attendanceStore.js";
 
 import StudentStats from './StudentStats';
 import ImageUploadForAttendance from './ImageUploadForAttendance';
 import SubjectSetup from './SubjectSetup';
+import { API_BASE_URL } from "../../../config/env";
 
 const HomePage = () => {
-    const { loginUserData } = store(state => state);
     const { addAttendanceRecord } = useAttendanceStore();
     const navigate = useNavigate();
     const [subjects, setSubjects] = useState([]);
@@ -23,7 +22,7 @@ const HomePage = () => {
             try {
                 const accessToken = localStorage.getItem('accessToken');
 
-                const response = await axios.get(`${loginUserData.baseURL}/subjects`, {
+                const response = await axios.get(`${API_BASE_URL}/subjects`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
                     }
@@ -47,7 +46,7 @@ const HomePage = () => {
         };
 
         fetchSubjects();
-    }, [navigate, loginUserData.baseURL]);
+    }, [navigate]);
 
     const handleSubjectCreated = (newSubject) => {
         setSubjects(prevSubjects => [...prevSubjects, newSubject]);

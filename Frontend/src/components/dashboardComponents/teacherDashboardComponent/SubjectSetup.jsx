@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import axios from 'axios';
 import { message } from 'antd';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const SubjectSetup = ({ onSubjectCreated }) => {
-    const { loginUserData } = store(state => state);
     const [subjectData, setSubjectData] = useState({
         name: '',
         code: '',
@@ -25,7 +24,7 @@ const SubjectSetup = ({ onSubjectCreated }) => {
         e.preventDefault();
         try {
             const response = await axios.post(
-                `${loginUserData.baseURL}/subjects`,
+                `${API_BASE_URL}/subjects`,
                 subjectData,
                 {
                     headers: {

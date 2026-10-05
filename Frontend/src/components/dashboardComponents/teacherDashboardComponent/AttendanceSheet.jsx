@@ -25,6 +25,7 @@ import {
 import store from '../../../zustand/loginStore';
 import useAttendanceStore from '../../../zustand/attendanceStore.js';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API_BASE_URL } from "../../../config/env";
 
 // Letter Avatar component for 3D letter display
 const LetterAvatar = ({ name }) => {
@@ -76,7 +77,6 @@ const LetterAvatar = ({ name }) => {
 
 const AttendanceSheet = () => {
   const [subjects, setSubjects] = useState([]);
-  const { loginUserData } = store(state => state);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [attendanceDate, setAttendanceDate] = useState(moment());
   const [attendanceData, setAttendanceData] = useState([]);
@@ -86,7 +86,7 @@ const AttendanceSheet = () => {
   const { attendanceRecords, addAttendanceRecord } = useAttendanceStore();
   
   const api = axios.create({
-    baseURL: loginUserData.baseURL,
+    baseURL: API_BASE_URL,
     headers: {
       'Content-Type': 'application/json'
     }

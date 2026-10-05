@@ -6,9 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from 'axios';
 import { message } from 'antd';
 import { motion } from 'framer-motion';
-import store from '../zustand/loginStore';
 import { FiUser, FiLock, FiMail, FiBookOpen, FiArrowRight, FiKey } from 'react-icons/fi';
 import { FaChalkboardTeacher, FaUserGraduate, FaGraduationCap } from 'react-icons/fa';
+import { API_BASE_URL } from "../config/env";
 
 const schema = z.object({
   email: z.string().min(1, { message: "Email is required" }).email("please enter valid format of email"),
@@ -29,7 +29,6 @@ const schema = z.object({
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
-  const { loginUserData } = store((state) => state);
   const navigate = useNavigate();
   const {
     register,
@@ -44,7 +43,7 @@ const SignUp = () => {
       setLoading(true);
 
       // Make the API call
-      const response = await axios.post(`${loginUserData.baseURL}/users/signup`, {
+      const response = await axios.post(`${API_BASE_URL}/users/signup`, {
         email: data.email,
         password: data.password,
         role: data.role,

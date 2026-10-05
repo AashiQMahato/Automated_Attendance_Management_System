@@ -15,6 +15,7 @@ import store from "../../../zustand/loginStore";
 import axios from "axios";
 import { message } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_BASE_URL } from "../../../config/env";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const StudentDashboard = () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       const response = await axios.post(
-        `${loginUserData.baseURL}/users/logout`,
+        `${API_BASE_URL}/users/logout`,
         {},
         {
           headers: {

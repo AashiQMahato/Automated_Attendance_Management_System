@@ -11,7 +11,7 @@ import {
   BarChart2, LineChart as LucideLineChart, Target, Award, BookOpen,
   Activity, ArrowUpRight, ArrowDownRight, RefreshCw
 } from 'lucide-react';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -36,7 +36,6 @@ const chartColors = {
 const AttendanceReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { loginUserData } = store((state) => state);
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [attendanceData, setAttendanceData] = useState([]);
@@ -56,7 +55,7 @@ const AttendanceReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const subjectsRes = await axios.get(`${loginUserData.baseURL}/subjects`, {
+      const subjectsRes = await axios.get(`${API_BASE_URL}/subjects`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
       });
       const subjectsArray = subjectsRes.data.data;
@@ -68,7 +67,7 @@ const AttendanceReport = () => {
 
       if (selectedSubject) {
         const attendanceRes = await axios.get(
-          `${loginUserData.baseURL}/attendance/subject/${selectedSubject}`,
+          `${API_BASE_URL}/attendance/subject/${selectedSubject}`,
           {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
           }

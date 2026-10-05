@@ -3,7 +3,7 @@ import { Card, Row, Col, Statistic, Progress, Table, Spin, message } from 'antd'
 import { Users, LineChart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const StudentStats = () => {
   const [stats, setStats] = useState({
@@ -13,14 +13,13 @@ const StudentStats = () => {
     totalSubjects: 0
   });
   const [loading, setLoading] = useState(true);
-  const { loginUserData } = store(state => state);
   const fetchData = async () => {
     try {
-      const studentsRes = await axios.get(`${loginUserData.baseURL}/users/students`, {
+      const studentsRes = await axios.get(`${API_BASE_URL}/users/students`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       const totalStudents = studentsRes.data.data.length;
-      const subjectsRes = await axios.get(`${loginUserData.baseURL}/subjects`, {
+      const subjectsRes = await axios.get(`${API_BASE_URL}/subjects`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       const subjects = subjectsRes.data.data;
@@ -31,7 +30,7 @@ const StudentStats = () => {
       for (const subject of subjects) {
         try {
           const attendanceRes = await axios.get(
-            `${loginUserData.baseURL}/attendance/subject/${subject._id}`,
+            `${API_BASE_URL}/attendance/subject/${subject._id}`,
             {
               headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
             }

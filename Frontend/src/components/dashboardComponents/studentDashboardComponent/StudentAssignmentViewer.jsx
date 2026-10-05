@@ -27,7 +27,7 @@ import {
 import axios from 'axios';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 dayjs.extend(relativeTime);
 
 const { useBreakpoint } = Grid;
@@ -42,7 +42,6 @@ const StudentAssignmentViewer = () => {
   const [submitting, setSubmitting] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const { loginUserData } = store((state) => state);
 
   useEffect(() => {
     fetchAssignments();
@@ -51,7 +50,7 @@ const StudentAssignmentViewer = () => {
   const fetchAssignments = async () => {
     try {
       const response = await axios.get(
-        `${loginUserData.baseURL}/assignments`,
+        `${API_BASE_URL}/assignments`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         }
@@ -80,7 +79,7 @@ const StudentAssignmentViewer = () => {
 
     try {
       await axios.post(
-        `${loginUserData.baseURL}/assignments/${selectedAssignment._id}/submit`,
+        `${API_BASE_URL}/assignments/${selectedAssignment._id}/submit`,
         formData,
         {
           headers: {
