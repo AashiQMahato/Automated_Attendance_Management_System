@@ -11,7 +11,6 @@ const initialLoginState = {
     role: null,
     semester: null,
     avatar: null,
-    baseURL:"http://localhost:8080/api/v1",
 };
 
 const useLoginStore = create(

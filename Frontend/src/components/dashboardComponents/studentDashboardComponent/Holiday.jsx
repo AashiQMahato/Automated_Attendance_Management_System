@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import axios from 'axios';
 import { message } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const statusStyles = {
   upcoming: 'bg-amber-50 text-amber-700 border-amber-100',
@@ -15,12 +15,11 @@ const statusStyles = {
 const Holiday = () => {
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { loginUserData } = store((state) => state);
 
   const fetchHolidays = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${loginUserData.baseURL}/holidays`, {
+      const { data } = await axios.get(`${API_BASE_URL}/holidays`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }

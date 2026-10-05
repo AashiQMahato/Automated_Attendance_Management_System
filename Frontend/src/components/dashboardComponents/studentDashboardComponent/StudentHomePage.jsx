@@ -10,11 +10,10 @@ import {
 } from '@ant-design/icons';
 import { Users, BookOpen, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const StudentHomePage = () => {
     const navigate = useNavigate();
-    const { loginUserData } = store((state) => state);
     const [loading, setLoading] = useState(true);
     const [subjects, setSubjects] = useState([]);
     const [stats, setStats] = useState({
@@ -23,7 +22,7 @@ const StudentHomePage = () => {
         attendedClasses: 0,
     });
     const api = axios.create({
-        baseURL: loginUserData.baseURL,
+        baseURL: API_BASE_URL,
         headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },

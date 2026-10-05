@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -23,7 +23,6 @@ const { useBreakpoint } = Grid;
 
 const AssignmentManagement = () => {
   const screens = useBreakpoint();
-  const { loginUserData } = store((state) => state);  
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState([]);
@@ -52,7 +51,7 @@ const AssignmentManagement = () => {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${loginUserData.baseURL}/assignments`, {
+      const res = await axios.get(`${API_BASE_URL}/assignments`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       setAssignments(res.data.data);
@@ -65,7 +64,7 @@ const AssignmentManagement = () => {
 
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get(`${loginUserData.baseURL}/subjects`, {
+      const res = await axios.get(`${API_BASE_URL}/subjects`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
       setSubjects(res.data.data);
@@ -88,7 +87,7 @@ const AssignmentManagement = () => {
 
       if (editingAssignment) {
         await axios.put(
-          `${loginUserData.baseURL}/assignments/${editingAssignment._id}`,
+          `${API_BASE_URL}/assignments/${editingAssignment._id}`,
           formData,
           {
             headers: { 
@@ -100,7 +99,7 @@ const AssignmentManagement = () => {
         message.success('Assignment updated successfully');
       } else {
         await axios.post(
-          `${loginUserData.baseURL}/assignments`,
+          `${API_BASE_URL}/assignments`,
           formData,
           {
             headers: { 
@@ -129,7 +128,7 @@ const AssignmentManagement = () => {
     try {
       setLoading(true);
       await axios.delete(
-        `${loginUserData.baseURL}/assignments/${assignmentToDelete._id}`,
+        `${API_BASE_URL}/assignments/${assignmentToDelete._id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         }

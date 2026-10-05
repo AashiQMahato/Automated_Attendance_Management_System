@@ -4,18 +4,17 @@ import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
 import axios from 'axios';
 import { FaTimes, FaEdit, FaTrash } from 'react-icons/fa';
-import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const TeacherHolidayAnnouncement = () => {
   const [form] = Form.useForm();
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editId, setEditId] = useState(null);
-  const { loginUserData } = store(state => state);
   const fetchHolidays = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${loginUserData.baseURL}/holidays`, {
+      const { data } = await axios.get(`${API_BASE_URL}/holidays`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -41,14 +40,14 @@ const TeacherHolidayAnnouncement = () => {
       };
 
       if (editId) {
-        await axios.put(`${loginUserData.baseURL}/holidays/${editId}`, payload, {
+        await axios.put(`${API_BASE_URL}/holidays/${editId}`, payload, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
         message.success('Holiday updated successfully!');
       } else {
-        await axios.post(`${loginUserData.baseURL}/holidays`, payload, {
+        await axios.post(`${API_BASE_URL}/holidays`, payload, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
@@ -66,7 +65,7 @@ const TeacherHolidayAnnouncement = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${loginUserData.baseURL}/holidays/${id}`, {
+      await axios.delete(`${API_BASE_URL}/holidays/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }

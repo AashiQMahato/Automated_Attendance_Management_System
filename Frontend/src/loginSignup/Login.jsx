@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiMail, FiLock, FiArrowRight, FiShield } from 'react-icons/fi';
 import { ReactTyped } from 'react-typed';
 import store from '../zustand/loginStore';
+import { API_BASE_URL } from "../config/env";
 
 const schema = z.object({
   email: z.string()
@@ -50,7 +51,7 @@ const Login = () => {
   const submitHandle = async (formData) => {
     try {
       setIsLoggingIn(true);
-      const response = await axios.post(`${loginUserData.baseURL}/users/login`, {
+      const response = await axios.post(`${API_BASE_URL}/users/login`, {
         email: formData.email,
         password: formData.password,
       });
@@ -82,7 +83,7 @@ const Login = () => {
 
   // Create a custom axios instance with interceptors
   const axiosInstance = axios.create({
-    baseURL: loginUserData?.baseURL,
+    baseURL: API_BASE_URL,
     withCredentials: true
   });
 
@@ -111,7 +112,7 @@ const Login = () => {
         try {
           // Call the backend refresh token endpoint
           const response = await axios.post(
-            `${loginUserData.baseURL}/users/refreshtoken`,
+            `${API_BASE_URL}/users/refreshtoken`,
             { refreshToken: localStorage.getItem('refreshToken') },
             { withCredentials: true }
           );

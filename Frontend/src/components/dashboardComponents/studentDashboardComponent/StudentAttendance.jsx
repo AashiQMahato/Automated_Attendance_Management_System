@@ -11,6 +11,7 @@ import {
 import dayjs from 'dayjs';
 import { Column } from '@ant-design/plots';
 import store from '../../../zustand/loginStore';
+import { API_BASE_URL } from "../../../config/env";
 
 const { useBreakpoint } = Grid;
 
@@ -21,7 +22,7 @@ const StudentAttendance = () => {
   const { loginUserData } = store(state => state);
 
   const api = axios.create({
-    baseURL: loginUserData.baseURL,
+    baseURL: API_BASE_URL,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
     },
