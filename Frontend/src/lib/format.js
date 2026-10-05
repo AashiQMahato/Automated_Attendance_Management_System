@@ -79,3 +79,28 @@ export const dueStatus = (dueDate) => {
   if (days <= 2) return { key: "soon", tone: "warning", label: `Due ${relativeDay(dueDate).toLowerCase()}` };
   return { key: "upcoming", tone: "neutral", label: `Due ${dayjs(dueDate).fromNow()}` };
 };
+
+// Display-only Title Case for user-entered titles and subject names.
+// Keeps acronyms/mixed-case words (ER, DSP, iPhone) and lowercases short
+// joining words except at the start.
+const SMALL_WORDS = new Set(["a", "an", "and", "as", "at", "but", "by", "for", "in", "nor", "of", "on", "or", "the", "to", "via", "with"]);
+export const titleCase = (text) => {
+  if (!text || typeof text !== "string") return text;
+  return text
+    .trim()
+    .split(/(\s+)/)
+    .map((word, i) => {
+      if (/^\s+$/.test(word)) return word;
+      return word
+        .split("-")
+        .map((part, j) => {
+          if (!part) return part;
+          if (/[A-Z]/.test(part.slice(1)) || /^[A-Z0-9]+$/.test(part)) return part; // acronym / mixed case
+          const lower = part.toLowerCase();
+          if (i > 0 && j === 0 && SMALL_WORDS.has(lower)) return lower;
+          return lower.charAt(0).toUpperCase() + lower.slice(1);
+        })
+        .join("-");
+    })
+    .join("");
+};

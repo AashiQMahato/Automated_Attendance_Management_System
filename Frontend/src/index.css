@@ -7,45 +7,46 @@
    RGB channels so Tailwind can apply opacity (see tailwind.config.js).
    ------------------------------------------------------------------ */
 :root {
-  --canvas: 248 250 252;      /* #F8FAFC */
+  --canvas: 244 246 251;      /* #F4F6FB  cool, faintly tinted */
   --surface: 255 255 255;     /* #FFFFFF */
-  --surface-2: 241 245 249;   /* #F1F5F9 */
-  --ink: 15 23 42;            /* #0F172A */
-  --ink-2: 71 85 105;         /* #475569 */
-  --ink-3: 100 116 139;       /* #64748B */
-  --line: 226 232 240;        /* #E2E8F0 */
-  --line-strong: 203 213 225; /* #CBD5E1 */
-  --brand: 37 99 235;         /* #2563EB */
+  --surface-2: 241 243 250;   /* #F1F3FA */
+  --ink: 17 19 43;            /* #11132B  navy ink */
+  --ink-2: 75 82 112;         /* #4B5270 */
+  --ink-3: 104 111 142;       /* #686F8E */
+  --line: 228 231 241;        /* #E4E7F1 */
+  --line-strong: 205 210 228; /* #CDD2E4 */
+  --brand: 79 70 229;         /* #4F46E5 indigo-600 */
+  --brand-2: 124 58 237;      /* #7C3AED violet-600 */
   --brand-fg: 255 255 255;
-  /* Status inks are one step darker than the chart hues so small text
-     on tinted badges keeps >= 4.5:1 contrast. */
+  /* Status inks are dark enough for small text on tinted badges (>= 4.5:1). */
   --success: 4 120 87;        /* #047857 */
   --warning: 180 83 9;        /* #B45309 */
-  --danger: 190 18 60;        /* #BE123C */
-  --accent: 37 99 235;
+  --danger: 225 29 72;        /* #E11D48 */
+  --accent: 79 70 229;
 }
 
-/* Role accents stay subtle: avatar, role chip, secondary chart series. */
-[data-role="Student"] { --accent: 5 150 105; }   /* emerald-600 */
-[data-role="Teacher"] { --accent: 79 70 229; }   /* indigo-600 */
+/* Role accent: avatar ring, role chip, hero gradient. */
+[data-role="Student"] { --accent: 124 58 237; --hero-from: 79 70 229; --hero-via: 124 58 237; --hero-to: 192 38 211; }
+[data-role="Teacher"] { --accent: 79 70 229;  --hero-from: 67 56 202; --hero-via: 37 99 235;  --hero-to: 8 145 178; }
 
 .dark {
-  --canvas: 2 6 23;           /* #020617 */
-  --surface: 15 23 42;        /* #0F172A */
-  --surface-2: 17 24 39;      /* #111827 */
-  --ink: 248 250 252;         /* #F8FAFC */
-  --ink-2: 203 213 225;       /* #CBD5E1 */
-  --ink-3: 148 163 184;       /* #94A3B8 */
-  --line: 30 41 59;           /* #1E293B */
-  --line-strong: 51 65 85;    /* #334155 */
-  --brand: 96 165 250;        /* #60A5FA */
-  --brand-fg: 2 6 23;
+  --canvas: 9 11 22;          /* #090B16 */
+  --surface: 17 20 39;        /* #111427 */
+  --surface-2: 24 28 52;      /* #181C34 */
+  --ink: 241 243 255;         /* #F1F3FF */
+  --ink-2: 196 201 224;       /* #C4C9E0 */
+  --ink-3: 140 147 180;       /* #8C93B4 */
+  --line: 37 42 69;           /* #252A45 */
+  --line-strong: 55 61 96;    /* #373D60 */
+  --brand: 129 140 248;       /* #818CF8 indigo-400 */
+  --brand-2: 167 139 250;     /* #A78BFA violet-400 */
+  --brand-fg: 255 255 255;
   --success: 52 211 153;      /* emerald-400 */
   --warning: 251 191 36;      /* amber-400 */
   --danger: 251 113 133;      /* rose-400 */
   color-scheme: dark;
 }
-.dark [data-role="Student"], .dark[data-role="Student"] { --accent: 52 211 153; }
+.dark [data-role="Student"], .dark[data-role="Student"] { --accent: 167 139 250; }
 .dark [data-role="Teacher"], .dark[data-role="Teacher"] { --accent: 129 140 248; }
 
 @layer base {
@@ -59,6 +60,25 @@
 }
 
 @layer components {
+  /* Primary gradient. Fixed 600-level stops keep white text >= 4.5:1 in both themes. */
+  .bg-brand-gradient {
+    background-image: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+  .text-brand-gradient {
+    background-image: linear-gradient(135deg, rgb(var(--brand)) 0%, rgb(var(--brand-2)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-hero {
+    background-image:
+      radial-gradient(120% 140% at 100% 0%, rgb(var(--hero-to) / 0.85) 0%, transparent 55%),
+      linear-gradient(120deg, rgb(var(--hero-from)) 0%, rgb(var(--hero-via)) 60%, rgb(var(--hero-to)) 130%);
+  }
+  .shadow-glow {
+    box-shadow: 0 8px 20px -8px rgb(79 70 229 / 0.55);
+  }
+
   /* Visible, consistent keyboard focus for every interactive element. */
   .focus-ring {
     @apply outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface;

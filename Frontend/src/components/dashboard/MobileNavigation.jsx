@@ -23,7 +23,7 @@ const MobileNavigation = ({ config, onLogout }) => {
   }, [sheetOpen]);
 
   const tabClass = (active) =>
-    `focus-ring flex flex-1 flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-medium transition-colors ${
+    `focus-ring flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors ${
       active ? "text-brand" : "text-ink-3 active:text-ink-2"
     }`;
 
@@ -40,7 +40,17 @@ const MobileNavigation = ({ config, onLogout }) => {
             const Icon = item.icon;
             return (
               <Link key={item.path} to={item.path} aria-current={active ? "page" : undefined} className={tabClass(active)}>
-                <Icon className="h-5 w-5" strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
+                <span className="relative flex h-7 w-12 items-center justify-center">
+                  {active && (
+                    <motion.span
+                      layoutId="tab-active"
+                      className="absolute inset-0 rounded-full bg-brand/10 dark:bg-brand/20"
+                      transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Icon className="relative h-5 w-5" strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
+                </span>
                 {item.short || item.name}
               </Link>
             );
@@ -52,7 +62,9 @@ const MobileNavigation = ({ config, onLogout }) => {
             aria-haspopup="dialog"
             className={tabClass(moreActive)}
           >
-            <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+            <span className="flex h-7 w-12 items-center justify-center">
+              <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+            </span>
             More
           </button>
         </div>
@@ -111,7 +123,7 @@ const MobileNavigation = ({ config, onLogout }) => {
                         to={item.path}
                         aria-current={active ? "page" : undefined}
                         className={`focus-ring flex h-12 items-center gap-3 rounded-xl px-3 text-[15px] ${
-                          active ? "bg-surface-2 font-medium text-ink" : "text-ink-2"
+                          active ? "bg-brand/10 font-medium text-brand" : "text-ink-2"
                         }`}
                       >
                         <Icon className={`h-5 w-5 ${active ? "text-brand" : "text-ink-3"}`} aria-hidden="true" />

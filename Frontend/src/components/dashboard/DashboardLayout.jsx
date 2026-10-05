@@ -8,7 +8,7 @@ import { ThemeProvider } from "../../theme/ThemeProvider";
 import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
 import MobileNavigation from "./MobileNavigation";
-import { currentPageName, navigation } from "./navigation";
+import { currentPage, navigation } from "./navigation";
 
 const COLLAPSE_KEY = "sidebar-collapsed";
 
@@ -48,7 +48,7 @@ const Shell = ({ role }) => {
     }
   };
 
-  const pageName = currentPageName(location.pathname, config);
+  const page = currentPage(location.pathname, config);
 
   return (
     <div className="dashboard-root min-h-screen" data-role={role}>
@@ -59,11 +59,22 @@ const Shell = ({ role }) => {
         Skip to content
       </a>
 
-      <Sidebar config={config} user={loginUserData} collapsed={collapsed} onToggleCollapsed={toggleCollapsed} onLogout={handleLogout} />
+      <Sidebar config={config} user={loginUserData} collapsed={collapsed} onLogout={handleLogout} />
 
-      <div className={`transition-[padding] duration-200 ease-apple ${collapsed ? "md:pl-[68px]" : "md:pl-[68px] lg:pl-60"}`}>
-        <TopHeader config={config} pageName={pageName} user={loginUserData} onLogout={handleLogout} />
-        <main id="main" tabIndex={-1} className="mx-auto max-w-[1280px] px-4 pb-28 pt-5 outline-none sm:px-6 md:pb-12 md:pt-6 lg:px-8">
+      <div className={`transition-[padding] duration-200 ease-apple ${collapsed ? "md:pl-[72px]" : "md:pl-[72px] lg:pl-60"}`}>
+        <TopHeader
+          config={config}
+          page={page}
+          user={loginUserData}
+          onLogout={handleLogout}
+          collapsed={collapsed}
+          onToggleCollapsed={toggleCollapsed}
+        />
+        <main
+          id="main"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-[1680px] px-3 pb-28 pt-4 outline-none sm:px-4 md:pb-10 md:pt-5 lg:px-6"
+        >
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 6 }}

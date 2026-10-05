@@ -22,6 +22,7 @@ export default {
         line: token("line"),
         "line-strong": token("line-strong"),
         brand: token("brand"),
+        "brand-2": token("brand-2"),
         "brand-fg": token("brand-fg"),
         accent: token("accent"),
         success: token("success"),
@@ -42,10 +43,10 @@ export default {
         ],
       },
       boxShadow: {
-        xs: "0 1px 2px 0 rgb(15 23 42 / 0.04)",
-        card: "0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.03)",
-        lift: "0 6px 16px -4px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04)",
-        pop: "0 12px 32px -8px rgb(15 23 42 / 0.16), 0 4px 8px -4px rgb(15 23 42 / 0.06)",
+        xs: "0 1px 2px 0 rgb(17 19 43 / 0.05)",
+        card: "0 1px 2px 0 rgb(17 19 43 / 0.04), 0 8px 24px -12px rgb(17 19 43 / 0.08)",
+        lift: "0 2px 4px -1px rgb(17 19 43 / 0.05), 0 16px 32px -12px rgb(79 70 229 / 0.18)",
+        pop: "0 16px 40px -12px rgb(17 19 43 / 0.22), 0 4px 10px -4px rgb(17 19 43 / 0.08)",
       },
       transitionTimingFunction: {
         // Close to Apple's default ease-out; used for UI state transitions.

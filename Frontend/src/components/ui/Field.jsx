@@ -1,7 +1,7 @@
 import React, { useId } from "react";
 
 export const inputClass =
-  "focus-ring h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink placeholder:text-ink-3 transition-colors hover:border-line-strong focus-visible:border-brand/60 focus-visible:ring-offset-0";
+  "focus-ring h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-ink-3 transition-colors hover:border-brand/40 focus-visible:border-brand/60 focus-visible:ring-offset-0";
 
 // Label + control + optional hint, wired up for screen readers.
 const Field = ({ label, hint, children }) => {

@@ -80,7 +80,7 @@ const DataTable = ({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={search.placeholder}
-                className="focus-ring h-9 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:border-brand/60 focus-visible:ring-offset-0"
+                className="focus-ring h-10 w-full rounded-xl border border-line bg-surface-2/50 pl-9 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:border-brand/60 focus-visible:ring-offset-0"
               />
             </label>
           )}
@@ -101,7 +101,7 @@ const DataTable = ({
             <table className="w-full border-collapse text-sm">
               {caption && <caption className="sr-only">{caption}</caption>}
               <thead className={stickyHeader ? "sticky top-0 z-[1]" : ""}>
-                <tr className="border-b border-line bg-surface-2/70 backdrop-blur">
+                <tr className="border-b border-line bg-surface-2/60 backdrop-blur">
                   {columns.map((col) => {
                     const sorted = sort?.key === col.key;
                     return (
@@ -109,13 +109,13 @@ const DataTable = ({
                         key={col.key}
                         scope="col"
                         aria-sort={sorted ? (sort.dir === "asc" ? "ascending" : "descending") : undefined}
-                        className={`whitespace-nowrap px-5 py-2.5 text-xs font-medium text-ink-3 ${alignClass(col.align)}`}
+                        className={`whitespace-nowrap px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-ink-3 ${alignClass(col.align)}`}
                       >
                         {col.sortValue ? (
                           <button
                             type="button"
                             onClick={() => toggleSort(col.key)}
-                            className="focus-ring -mx-1 inline-flex items-center gap-1 rounded px-1 hover:text-ink"
+                            className="focus-ring -mx-1 inline-flex items-center gap-1 rounded px-1 uppercase tracking-wider hover:text-brand"
                           >
                             {col.header}
                             {sorted &&
@@ -135,9 +135,9 @@ const DataTable = ({
               </thead>
               <tbody>
                 {current.map((row, i) => (
-                  <tr key={getKey(row, i)} className="border-b border-line transition-colors last:border-0 hover:bg-surface-2/60">
+                  <tr key={getKey(row, i)} className="border-b border-line transition-colors last:border-0 hover:bg-brand/[0.035]">
                     {columns.map((col) => (
-                      <td key={col.key} className={`px-5 py-3 align-middle text-ink-2 ${alignClass(col.align)} ${col.className || ""}`}>
+                      <td key={col.key} className={`px-5 py-3.5 align-middle text-ink-2 ${alignClass(col.align)} ${col.className || ""}`}>
                         {col.render ? col.render(row) : row[col.key]}
                       </td>
                     ))}

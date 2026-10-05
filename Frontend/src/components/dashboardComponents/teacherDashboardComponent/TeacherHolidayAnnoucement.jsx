@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { colors as palette } from "../../ui/colors";
 import { DatePicker, Form, Input, Popconfirm, message } from "antd";
 import dayjs from "dayjs";
 import { CalendarRange, Megaphone, Pencil, Trash2 } from "lucide-react";
@@ -79,13 +80,14 @@ const TeacherHolidayAnnouncement = () => {
   const label = (text) => <span className="text-[13px] font-medium text-ink-2">{text}</span>;
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Holidays" description="Announce breaks and observances to every student." />
+    <div className="space-y-4">
+      <PageHeader icon={CalendarRange} color="rose" title="Holidays" description="Announce breaks and observances to every student." />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[360px,minmax(0,1fr)]">
+      <div className="grid items-start gap-4 lg:grid-cols-[360px,minmax(0,1fr)]">
         <Card className="lg:sticky lg:top-20">
           <CardHeader
             icon={editId ? Pencil : Megaphone}
+            iconTile={palette.rose.tile}
             title={editId ? "Edit holiday" : "New announcement"}
             description={editId ? "Update the details below." : "Students see this instantly."}
           />

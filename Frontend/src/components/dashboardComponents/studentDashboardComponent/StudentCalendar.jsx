@@ -1,267 +1,372 @@
-import React, { useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { CalendarClock, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, ClipboardList, Search } from "lucide-react";
+import store from "../../../zustand/loginStore";
+import api from "../../../lib/api";
+import useAsync from "../../../lib/useAsync";
+import { dayjs, titleCase } from "../../../lib/format";
+import { WEEKDAYS, buildMonth, cursorFor, dateKey, formatBs, parseInSystem, shiftCursor } from "../../../lib/calendar";
 import PageHeader from "../../ui/PageHeader";
 import Button from "../../ui/Button";
+import SegmentedControl from "../../ui/SegmentedControl";
 import { Card, CardHeader } from "../../ui/Card";
-import { EmptyState } from "../../ui/States";
-import NepaliDate from "nepali-date-converter";
+import { EmptyState, ErrorState } from "../../ui/States";
+import { Skeleton } from "../../ui/Skeleton";
+import { colors as palette } from "../../ui/colors";
+
+const SYSTEM_KEY = "calendar-system";
+const readSystem = () => {
+  try {
+    return localStorage.getItem(SYSTEM_KEY) === "ad" ? "ad" : "bs";
+  } catch {
+    return "bs";
+  }
+};
+
+const eventStyle = {
+  holiday: { color: "rose", icon: CalendarRange, label: "Holiday" },
+  assignment: { color: "amber", icon: ClipboardList, label: "Assignment due" },
+  submitted: { color: "emerald", icon: ClipboardList, label: "Submitted" },
+};
+
+const EventPill = ({ event }) => {
+  const c = palette[eventStyle[event.type].color];
+  return (
+    <span className={`flex min-w-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-4 ${c.tile}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${c.dot}`} aria-hidden="true" />
+      <span className="truncate">{event.title}</span>
+    </span>
+  );
+};
+
+const EventRow = ({ event, showDate, onOpen }) => {
+  const style = eventStyle[event.type];
+  const Icon = style.icon;
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-brand/[0.04]"
+      >
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${palette[style.color].tile}`}>
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13px] font-medium text-ink">{event.title}</span>
+          <span className="block truncate text-xs text-ink-3">
+            {style.label}
+            {event.meta ? ` · ${event.meta}` : ""}
+            {showDate ? ` · ${dayjs(event.date).format("MMM D")} · ${formatBs(event.date, false)}` : ""}
+          </span>
+        </span>
+      </button>
+    </li>
+  );
+};
 
 const StudentCalendar = () => {
-  const [currentDate, setCurrentDate] = useState(new NepaliDate());
-  const [selectedDate, setSelectedDate] = useState(null);
+  const navigate = useNavigate();
+  const { loginUserData } = store((state) => state);
+  const [system, setSystemState] = useState(readSystem);
+  const [cursor, setCursor] = useState(() => cursorFor(readSystem()));
+  const [selected, setSelected] = useState(() => dayjs().startOf("day"));
   const [searchDate, setSearchDate] = useState("");
+  const [direction, setDirection] = useState(0);
 
-  const nepaliMonths = [
-    "Baisakh",
-    "Jestha",
-    "Ashadh",
-    "Shrawan",
-    "Bhadra",
-    "Ashwin",
-    "Kartik",
-    "Mangshir",
-    "Poush",
-    "Magh",
-    "Falgun",
-    "Chaitra",
-  ];
+  const { data, loading, error, reload } = useAsync(async () => {
+    const [holidays, assignments] = await Promise.allSettled([api.get("/holidays"), api.get("/assignments")]);
+    if (holidays.status === "rejected" && assignments.status === "rejected") throw holidays.reason;
+    return {
+      holidays: holidays.status === "fulfilled" ? holidays.value.data?.data || [] : [],
+      assignments: assignments.status === "fulfilled" ? assignments.value.data?.data || [] : [],
+    };
+  }, []);
 
-  const nepaliDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  // AD date key → events on that day
+  const events = useMemo(() => {
+    const map = new Map();
+    const add = (key, ev) => map.set(key, [...(map.get(key) || []), ev]);
+    (data?.holidays || []).forEach((h) => {
+      const end = dayjs(h.endDate).startOf("day");
+      for (let d = dayjs(h.startDate).startOf("day"); !d.isAfter(end); d = d.add(1, "day")) {
+        add(dateKey(d), { id: `h-${h._id}-${dateKey(d)}`, type: "holiday", title: titleCase(h.title), date: d });
+      }
+    });
+    (data?.assignments || []).forEach((a) => {
+      const done = a.submissions?.some((s) => s.student === loginUserData?._id);
+      add(dateKey(a.dueDate), {
+        id: `a-${a._id}`,
+        type: done ? "submitted" : "assignment",
+        title: titleCase(a.title),
+        date: dayjs(a.dueDate),
+        meta: titleCase(a.subject?.name),
+      });
+    });
+    return map;
+  }, [data, loginUserData?._id]);
 
-  const daysInMonth = {
-    2080: [31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30],
-    2081: [31, 31, 32, 32, 31, 30, 30, 30, 30, 29, 30, 30],
-  };
+  const month = useMemo(() => buildMonth(system, cursor), [system, cursor]);
+  const todayKey = dateKey(dayjs());
+  const selectedEvents = events.get(dateKey(selected)) || [];
+  const upcoming = useMemo(
+    () =>
+      [...events.values()]
+        .flat()
+        .filter((e) => !dayjs(e.date).isBefore(dayjs().startOf("day")))
+        // One row per holiday rather than one per day of it.
+        .filter((e, i, arr) => e.type !== "holiday" || arr.findIndex((x) => x.type === "holiday" && x.title === e.title) === i)
+        .sort((a, b) => a.date - b.date)
+        .slice(0, 6),
+    [events],
+  );
 
-  const events = {
-    "2081-07-20": { title: "Team Meeting", type: "work" },
-    "2081-07-25": { title: "Birthday Party", type: "celebration" },
-    "2081-07-15": { title: "Project Deadline", type: "deadline" },
-    "2081-08-15": { title: "Tihar Festival", type: "festival" },
-    "2081-09-25": { title: "Christmas", type: "holiday" },
-    "2081-09-30": { title: "New Year Eve", type: "holiday" },
-    "2081-10-01": { title: "New Year 2025", type: "holiday" },
-  };
-
-  const eventDotColor = {
-    work: "bg-brand",
-    celebration: "bg-warning",
-    festival: "bg-accent",
-    holiday: "bg-danger",
-    deadline: "bg-warning",
-  };
-
-  const getDaysInMonth = (bsDate) => {
-    const year = bsDate.getYear();
-    const month = bsDate.getMonth();
-    return daysInMonth[year]?.[month] || daysInMonth[2081][month];
-  };
-
-  const generateCalendarDays = () => {
-    const year = currentDate.getYear();
-    const month = currentDate.getMonth();
-    const startDay = new NepaliDate(year, month, 1).getDay();
-    const totalDays = getDaysInMonth(currentDate);
-
-    const days = [];
-    for (let i = 0; i < startDay; i++) {
-      days.push(null);
-    }
-
-    for (let i = 1; i <= totalDays; i++) {
-      days.push(new NepaliDate(year, month, i));
-    }
-    return days;
-  };
-
-  const isToday = (date) => {
-    if (!date) return false;
-    const today = new NepaliDate();
-    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getYear() === today.getYear();
-  };
-
-  const getUpcomingEvents = () => {
-    const today = new NepaliDate();
-    return Object.entries(events)
-      .map(([date, event]) => ({ date, ...event }))
-      .filter((event) => {
-        const [year, month, day] = event.date.split("-").map(Number);
-        const eventDate = new NepaliDate(year, month - 1, day);
-        return eventDate.valueOf() >= today.valueOf();
-      })
-      .sort((a, b) => {
-        const [yearA, monthA, dayA] = a.date.split("-").map(Number);
-        const [yearB, monthB, dayB] = b.date.split("-").map(Number);
-        return new NepaliDate(yearA, monthA - 1, dayA).valueOf() - new NepaliDate(yearB, monthB - 1, dayB).valueOf();
-      })
-      .slice(0, 3);
-  };
-
-  const compareDates = (date1, date2) => {
-    if (!date1 || !date2) return false;
-    return date1.getYear() === date2.getYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
-  };
-
-  const handleSearch = () => {
-    const [year, month, day] = searchDate.split("-").map(Number);
-    if (year && month && day) {
-      setCurrentDate(new NepaliDate(year, month - 1, day));
-      setSelectedDate(new NepaliDate(year, month - 1, day));
+  const setSystem = (next) => {
+    setSystemState(next);
+    setDirection(0);
+    setCursor(cursorFor(next, selected));
+    try {
+      localStorage.setItem(SYSTEM_KEY, next);
+    } catch {
+      /* ignore */
     }
   };
 
-  const selectedEventKey =
-    selectedDate &&
-    `${selectedDate.getYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+  const go = (delta) => {
+    setDirection(delta);
+    setCursor((c) => shiftCursor(c, delta));
+  };
 
-  const upcoming = getUpcomingEvents();
-  const navButton = "focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 hover:text-ink";
+  const goTo = (date) => {
+    setDirection(0);
+    setSelected(date);
+    setCursor(cursorFor(system, date));
+  };
+
+  const openEvent = (e) => navigate(e.type === "holiday" ? "/studentdashboard/holidays" : "/studentdashboard/assignments");
+  const selectedBs = formatBs(selected, false).split(" ");
+
+  const navButton =
+    "focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-ink-2 hover:bg-brand/[0.08] hover:text-brand";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
+        icon={CalendarDays}
+        color="sky"
         title="Calendar"
-        description="Nepali academic calendar (Bikram Sambat)."
+        description="Holidays and assignment deadlines, in Bikram Sambat or Gregorian dates."
         actions={
-          <form
-            className="flex items-center gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch();
-            }}
-          >
-            <label className="relative">
-              <span className="sr-only">Jump to date (YYYY-MM-DD)</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" aria-hidden="true" />
-              <input
-                value={searchDate}
-                onChange={(e) => setSearchDate(e.target.value)}
-                placeholder="YYYY-MM-DD"
-                inputMode="numeric"
-                className="focus-ring h-9 w-40 rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:ring-offset-0"
-              />
-            </label>
-            <Button type="submit">Go</Button>
-          </form>
+          <>
+            <SegmentedControl
+              label="Calendar system"
+              size="md"
+              value={system}
+              onChange={setSystem}
+              options={[
+                { value: "bs", label: "BS · बि.सं." },
+                { value: "ad", label: "AD" },
+              ]}
+            />
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const d = parseInSystem(system, searchDate);
+                if (d) goTo(d);
+              }}
+            >
+              <label className="relative">
+                <span className="sr-only">Jump to date ({system.toUpperCase()}, YYYY-MM-DD)</span>
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" aria-hidden="true" />
+                <input
+                  value={searchDate}
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  placeholder={`${system.toUpperCase()} YYYY-MM-DD`}
+                  inputMode="numeric"
+                  className="focus-ring h-10 w-44 rounded-xl border border-line bg-surface pl-9 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:ring-offset-0"
+                />
+              </label>
+              <Button type="submit">Go</Button>
+            </form>
+          </>
         }
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-        <Card className="p-4 sm:p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
-              {nepaliMonths[currentDate.getMonth()]} <span className="font-normal text-ink-3">{currentDate.getYear()}</span>
-            </h2>
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr),340px]">
+        <Card className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-4 sm:px-5">
+            <div>
+              <h2 className="text-[20px] font-bold tracking-[-0.025em] text-ink">{month.title}</h2>
+              <p className="text-[13px] text-ink-3">{month.subtitle}</p>
+            </div>
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setCurrentDate(new NepaliDate(currentDate.getYear(), currentDate.getMonth() - 1, 1))}
-                aria-label="Previous month"
-                className={navButton}
-              >
+              <button type="button" onClick={() => go(-1)} aria-label="Previous month" className={navButton}>
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const today = new NepaliDate();
-                  setCurrentDate(today);
-                  setSelectedDate(today);
-                }}
-                className="focus-ring h-8 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
-              >
+              <Button size="sm" onClick={() => goTo(dayjs().startOf("day"))}>
                 Today
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentDate(new NepaliDate(currentDate.getYear(), currentDate.getMonth() + 1, 1))}
-                aria-label="Next month"
-                className={navButton}
-              >
+              </Button>
+              <button type="button" onClick={() => go(1)} aria-label="Next month" className={navButton}>
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {nepaliDays.map((day) => (
-              <div key={day} className="py-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-ink-3">
-                {day}
+          <div className="grid grid-cols-7 border-b border-line bg-surface-2/50">
+            {WEEKDAYS.map((d, i) => (
+              <div
+                key={d}
+                className={`py-2 text-center text-[11px] font-semibold uppercase tracking-wider ${i === 6 ? "text-rose-500 dark:text-rose-300" : "text-ink-3"}`}
+              >
+                {d}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {generateCalendarDays().map((date, index) => {
-              const key =
-                date && `${date.getYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-              const event = key && events[key];
-              const today = isToday(date);
-              const selected = compareDates(selectedDate, date);
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => date && setSelectedDate(date)}
-                  disabled={!date}
-                  aria-current={today ? "date" : undefined}
-                  aria-pressed={selected}
-                  aria-label={date ? `${nepaliMonths[date.getMonth()]} ${date.getDate()}${event ? `, ${event.title}` : ""}` : undefined}
-                  className={`focus-ring relative flex aspect-square flex-col items-center justify-center rounded-lg text-sm tabular-nums transition-colors sm:aspect-[4/3] ${
-                    !date ? "invisible" : ""
-                  } ${
-                    today
-                      ? "bg-brand font-semibold text-brand-fg"
-                      : selected
-                        ? "bg-brand/10 font-medium text-brand ring-1 ring-brand/30"
-                        : "text-ink-2 hover:bg-surface-2 hover:text-ink"
-                  }`}
-                >
-                  {date && (
-                    <>
-                      <span>{date.getDate()}</span>
-                      {event && (
+          {loading ? (
+            <div className="grid grid-cols-7 gap-px bg-line" aria-busy="true">
+              {Array.from({ length: 35 }).map((_, i) => (
+                <div key={i} className="h-16 bg-surface p-2 sm:h-24">
+                  <Skeleton className="h-4 w-6" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.div
+                key={`${system}-${cursor.year}-${cursor.month}`}
+                initial={{ opacity: 0, x: direction * 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction * -24 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                className="grid grid-cols-7 gap-px bg-line"
+                role="grid"
+                aria-label={month.title}
+              >
+                {month.cells.map((cell) => {
+                  const dayEvents = events.get(cell.key) || [];
+                  const isToday = cell.key === todayKey;
+                  const isSelected = cell.key === dateKey(selected);
+                  const isSaturday = cell.date.day() === 6;
+                  return (
+                    <button
+                      key={cell.key}
+                      type="button"
+                      role="gridcell"
+                      aria-selected={isSelected}
+                      aria-current={isToday ? "date" : undefined}
+                      aria-label={`${cell.date.format("dddd, MMMM D, YYYY")}, ${formatBs(cell.date)} BS${
+                        dayEvents.length ? `, ${dayEvents.length} ${dayEvents.length === 1 ? "event" : "events"}` : ""
+                      }`}
+                      onClick={() => setSelected(cell.date)}
+                      className={`group relative flex h-16 flex-col items-stretch gap-1 p-1.5 text-left outline-none transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-brand/60 sm:h-24 sm:p-2 ${
+                        cell.inMonth ? "bg-surface hover:bg-brand/[0.03]" : "bg-surface-2/60 text-ink-3"
+                      } ${isSelected ? "z-[1] ring-2 ring-inset ring-brand/60" : ""}`}
+                    >
+                      <span className="flex items-start justify-between gap-1">
                         <span
-                          className={`absolute bottom-1.5 h-1 w-1 rounded-full sm:h-1.5 sm:w-1.5 ${today ? "bg-brand-fg" : eventDotColor[event.type] || "bg-ink-3"}`}
-                          aria-hidden="true"
-                        />
+                          className={`flex h-7 min-w-[28px] items-center justify-center rounded-full px-1 text-[13px] font-semibold tabular-nums ${
+                            isToday
+                              ? "bg-brand-gradient text-white shadow-glow"
+                              : cell.inMonth
+                                ? isSaturday
+                                  ? "text-rose-600 dark:text-rose-300"
+                                  : "text-ink"
+                                : "text-ink-3"
+                          }`}
+                        >
+                          {cell.primary}
+                        </span>
+                        <span className="hidden pt-1 text-[10px] font-medium tabular-nums text-ink-3 sm:block">{cell.secondary}</span>
+                      </span>
+                      {/* Desktop: labeled pills; phones: colored dots */}
+                      <span className="hidden min-w-0 flex-col gap-0.5 sm:flex">
+                        {dayEvents.slice(0, 2).map((e) => (
+                          <EventPill key={e.id} event={e} />
+                        ))}
+                        {dayEvents.length > 2 && (
+                          <span className="px-1 text-[10px] font-medium text-ink-3">+{dayEvents.length - 2} more</span>
+                        )}
+                      </span>
+                      {dayEvents.length > 0 && (
+                        <span className="mt-auto flex justify-center gap-0.5 sm:hidden" aria-hidden="true">
+                          {dayEvents.slice(0, 3).map((e) => (
+                            <span key={e.id} className={`h-1.5 w-1.5 rounded-full ${palette[eventStyle[e.type].color].dot}`} />
+                          ))}
+                        </span>
                       )}
-                    </>
-                  )}
-                </button>
-              );
-            })}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
+          )}
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3 sm:px-5">
+            {Object.entries(eventStyle).map(([key, s]) => (
+              <span key={key} className="inline-flex items-center gap-1.5 text-xs text-ink-3">
+                <span className={`h-2 w-2 rounded-full ${palette[s.color].dot}`} aria-hidden="true" />
+                {s.label}
+              </span>
+            ))}
           </div>
         </Card>
 
-        <div className="space-y-6">
-          {selectedDate && (
-            <Card className="p-5">
-              <p className="text-xs font-medium text-ink-3">Selected date</p>
-              <p className="mt-1 text-[15px] font-semibold text-ink">
-                {nepaliMonths[selectedDate.getMonth()]} {selectedDate.getDate()}, {selectedDate.getYear()}
-              </p>
-              <p className="mt-2 text-[13px] text-ink-2">
-                {selectedEventKey && events[selectedEventKey] ? events[selectedEventKey].title : "No events on this day."}
-              </p>
-            </Card>
-          )}
+        <div className="space-y-4">
+          <Card>
+            <div className="flex items-center gap-4 px-5 pt-5">
+              <div className="bg-brand-gradient flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl text-white shadow-glow">
+                <span className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                  {system === "bs" ? selectedBs[0].slice(0, 3) : selected.format("MMM")}
+                </span>
+                <span className="text-2xl font-bold leading-none tabular-nums">
+                  {system === "bs" ? selectedBs[1] : selected.format("D")}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[15px] font-semibold text-ink">{selected.format("dddd")}</p>
+                <p className="text-[13px] text-ink-2">{formatBs(selected)} BS</p>
+                <p className="text-[13px] text-ink-3">{selected.format("MMMM D, YYYY")} AD</p>
+              </div>
+            </div>
+            <div className="px-2 pb-3 pt-3">
+              {selectedEvents.length === 0 ? (
+                <p className="mx-3 rounded-xl border border-dashed border-line px-4 py-3 text-[13px] text-ink-3">
+                  Nothing scheduled this day.
+                </p>
+              ) : (
+                <ul>
+                  {selectedEvents.map((e) => (
+                    <EventRow key={e.id} event={e} onOpen={() => openEvent(e)} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Card>
 
           <Card>
-            <CardHeader title="Upcoming events" />
-            {upcoming.length === 0 ? (
-              <EmptyState icon={CalendarDays} title="No upcoming events" compact />
-            ) : (
-              <ul className="p-2 pt-3">
-                {upcoming.map((event, index) => (
-                  <li key={index} className="flex items-center gap-3 rounded-lg px-3 py-2.5">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${eventDotColor[event.type] || "bg-ink-3"}`} aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{event.title}</span>
-                    <span className="shrink-0 text-xs tabular-nums text-ink-3">{event.date}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <CardHeader icon={CalendarClock} iconTile={palette.sky.tile} title="Upcoming" description="Next holidays and deadlines" />
+            <div className="px-2 pb-3 pt-3">
+              {error ? (
+                <ErrorState compact title="We couldn't load events" onRetry={reload} />
+              ) : loading ? (
+                <div className="space-y-3 px-3 py-2">
+                  {[0, 1, 2].map((i) => (
+                    <Skeleton key={i} className="h-10 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : upcoming.length === 0 ? (
+                <EmptyState icon={CalendarDays} title="No upcoming events" compact />
+              ) : (
+                <ul>
+                  {upcoming.map((e) => (
+                    <EventRow key={e.id} event={e} showDate onOpen={() => goTo(dayjs(e.date).startOf("day"))} />
+                  ))}
+                </ul>
+              )}
+            </div>
           </Card>
         </div>
       </div>

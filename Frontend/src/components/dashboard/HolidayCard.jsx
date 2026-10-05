@@ -3,7 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Skeleton } from "../ui/Skeleton";
 import StatusBadge from "../ui/StatusBadge";
-import { dayjs } from "../../lib/format";
+import DateTile from "../ui/DateTile";
+import { dayjs, titleCase } from "../../lib/format";
 
 export const holidayStatus = (h) => {
   const today = dayjs();
@@ -21,12 +22,18 @@ const HolidayCard = ({ holiday, actions }) => {
   const status = holidayStatus(holiday);
   const days = dayjs(holiday.endDate).diff(holiday.startDate, "day") + 1;
   return (
-    <Card className={`flex flex-col p-5 ${status === "passed" ? "opacity-75" : ""}`}>
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[15px] font-semibold leading-6 tracking-[-0.01em] text-ink">{holiday.title}</h3>
-        <StatusBadge tone={statusTone[status]}>{statusLabel[status]}</StatusBadge>
+    <Card interactive className={`flex flex-col p-5 ${status === "passed" ? "opacity-70" : ""}`}>
+      <div className="flex items-start gap-4">
+        <DateTile date={holiday.startDate} color={status === "passed" ? "sky" : status === "ongoing" ? "emerald" : "rose"} size="lg" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-[15px] font-semibold leading-6 tracking-[-0.01em] text-ink">{titleCase(holiday.title)}</h3>
+            <StatusBadge tone={statusTone[status]}>{statusLabel[status]}</StatusBadge>
+          </div>
+          <p className="mt-0.5 text-xs text-ink-3">{dayjs(holiday.startDate).format("dddd")}</p>
+        </div>
       </div>
-      <p className="mt-2 line-clamp-3 flex-1 text-[13px] leading-5 text-ink-2">{holiday.description}</p>
+      <p className="mt-4 line-clamp-3 flex-1 text-[13px] leading-5 text-ink-2">{holiday.description}</p>
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
         <p className="flex items-center gap-1.5 text-xs font-medium tabular-nums text-ink-2">
           {dayjs(holiday.startDate).format("MMM D")}

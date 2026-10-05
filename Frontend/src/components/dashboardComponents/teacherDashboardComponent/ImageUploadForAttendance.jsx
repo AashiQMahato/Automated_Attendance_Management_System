@@ -1,9 +1,9 @@
 import React, { useRef, useState } from "react";
-import axios from "axios";
+import { colors as palette } from "../../ui/colors";
 import { message } from "antd";
 import { AnimatePresence, motion } from "framer-motion";
 import { Camera, ImagePlus, ScanFace, Sparkles, X } from "lucide-react";
-import { FACE_RECOGNITION_URL } from "../../../config/env";
+import api from "../../../lib/api";
 import Button from "../../ui/Button";
 import { Card, CardHeader } from "../../ui/Card";
 import { ProgressBar } from "../../ui/Progress";
@@ -104,15 +104,17 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
     try {
       const formData = new FormData();
       formData.append("file", image);
-      const response = await axios.post(`${FACE_RECOGNITION_URL}/upload_and_recognize/`, formData, {
-        headers: { "Content-Type": "multipart/form-data", Accept: "application/json" },
-        timeout: 30000,
+      // The backend forwards the photo to its face service (teachers only).
+      const response = await api.post("/attendance/recognize", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 90000,
       });
 
       if (response.data) {
         setResults({ faces_detected: response.data.faces_detected || 0, results: response.data.results || [] });
-        if (response.data.cloudinary_url) {
-          addAttendanceRecord(response.data.results, subjects, response.data.cloudinary_url);
+        // Apply matches to the roster even when the photo couldn't be archived.
+        if (response.data.results?.length) {
+          addAttendanceRecord(response.data.results, subjects, response.data.cloudinary_url || null);
         }
         message.success({ content: `Found ${response.data.faces_detected || 0} faces`, key: messageKey, duration: 3 });
       }
@@ -122,12 +124,19 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
       else if (err.response) {
         switch (err.response.status) {
           case 400:
-            errorMessage = "This image format isn't supported.";
+            errorMessage = err.response.data?.message || "This image format isn't supported.";
             break;
           case 413:
             errorMessage = "This image is too large.";
             break;
+          case 503:
+            errorMessage = "Face recognition is starting up or not set up on the server. You can still mark attendance manually.";
+            break;
+          case 504:
+            errorMessage = "Recognition took too long. Please try again.";
+            break;
           case 500:
+          case 502:
             errorMessage = "The recognition service had a problem. Please try again shortly.";
             break;
           default:
@@ -148,6 +157,7 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
       <CardHeader
         id="recognition"
         icon={ScanFace}
+        iconTile={palette.violet.tile}
         title="Photo recognition"
         description="Detect students from a class photo, then review below."
       />
@@ -201,10 +211,14 @@ const ImageUploadForAttendance = ({ subjects, addAttendanceRecord }) => {
               handleFile(e.dataTransfer.files[0]);
             }}
             className={`flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center transition-colors ${
-              isDragging ? "border-brand bg-brand/5" : "border-line-strong"
+              isDragging
+                ? "border-brand bg-brand/5"
+                : "border-indigo-200 bg-gradient-to-b from-indigo-50/60 to-transparent hover:border-brand/50 dark:border-indigo-500/30 dark:from-indigo-500/10"
             }`}
           >
-            <ImagePlus className="mb-2 h-6 w-6 text-ink-3" aria-hidden="true" />
+            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand shadow-card dark:bg-surface-2">
+              <ImagePlus className="h-5 w-5" aria-hidden="true" />
+            </span>
             <p className="text-sm font-medium text-ink">Drop a class photo here</p>
             <p className="mt-0.5 text-xs text-ink-3">JPG, PNG or HEIC · up to 5MB</p>
           </div>

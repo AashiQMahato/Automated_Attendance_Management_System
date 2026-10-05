@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { colors as palette } from "../../ui/colors";
 import { useSearchParams } from "react-router-dom";
 import {
   Area,
@@ -26,10 +27,13 @@ import {
   RefreshCw,
   Target,
   TrendingDown,
+  PieChart as PieIcon,
+  History,
+  LineChart,
 } from "lucide-react";
 import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
-import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, downloadCsv, formatPercent, percent } from "../../../lib/format";
+import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, downloadCsv, formatPercent, percent, titleCase } from "../../../lib/format";
 import { sessionRate } from "../../../lib/attendance";
 import PageHeader from "../../ui/PageHeader";
 import Button from "../../ui/Button";
@@ -38,15 +42,15 @@ import StatusBadge from "../../ui/StatusBadge";
 import DataTable from "../../ui/DataTable";
 import AsyncContent from "../../ui/AsyncContent";
 import { Card, CardBody, CardHeader } from "../../ui/Card";
-import { ChartTooltip, LegendDot, useChartTheme } from "../../ui/Chart";
+import { ChartTooltip, LegendDot, chartGradients, useChartTheme } from "../../ui/Chart";
 import { EmptyState } from "../../ui/States";
 import { SkeletonCard, SkeletonStatGrid } from "../../ui/Skeleton";
 import SubjectSelect from "../../dashboard/SubjectSelect";
 
 const ReportSkeleton = () => (
-  <div className="space-y-6">
+  <div className="space-y-4">
     <SkeletonStatGrid />
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-4 lg:grid-cols-3">
       <SkeletonCard chart className="lg:col-span-2" />
       <SkeletonCard chart />
     </div>
@@ -107,7 +111,7 @@ const AttendanceReport = () => {
     };
   }, [report.data]);
 
-  const subjectName = subjects.find((s) => s._id === selectedSubject)?.name;
+  const subjectName = titleCase(subjects.find((s) => s._id === selectedSubject)?.name);
 
   const exportCsv = () =>
     downloadCsv(`${(subjectName || "report").replace(/\s+/g, "-").toLowerCase()}-${dayjs().format("YYYY-MM-DD")}.csv`, [
@@ -116,8 +120,8 @@ const AttendanceReport = () => {
     ]);
 
   const pie = [
-    { name: "Present", value: stats.totalPresent, color: colors.present },
-    { name: "Absent", value: stats.totalAbsent, color: colors.absent },
+    { name: "Present", value: stats.totalPresent, color: colors.present, fill: "url(#g-present)" },
+    { name: "Absent", value: stats.totalAbsent, color: colors.absent, fill: "url(#g-absent)" },
   ];
 
   const columns = [
@@ -163,8 +167,10 @@ const AttendanceReport = () => {
   const hasData = stats.sessions.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
+        icon={BarChart3}
+        color="violet"
         title="Reports"
         description={subjectName ? `Attendance analytics for ${subjectName}` : "Attendance analytics per subject"}
         actions={
@@ -208,16 +214,21 @@ const AttendanceReport = () => {
               />
             </Card>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <section aria-label="Report summary" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <StatCard
                   label="Classes recorded"
+                  color="indigo"
+                  index={0}
                   icon={CalendarCheck}
                   value={stats.sessions.length}
                   hint={`Since ${dayjs(stats.sessions[0].date).format("MMM D")}`}
                 />
                 <StatCard
                   label="Average attendance"
+                  color="emerald"
+                  index={1}
+                  spark={stats.chart.map((c) => c.rate)}
                   icon={Activity}
                   value={formatPercent(stats.avg)}
                   tone={stats.avg < ATTENDANCE_THRESHOLD ? "warning" : "default"}
@@ -229,22 +240,28 @@ const AttendanceReport = () => {
                 />
                 <StatCard
                   label="Best class"
+                  color="amber"
+                  index={2}
                   icon={Target}
                   value={stats.best.present}
                   hint={`present · ${dayjs(stats.best.date).format("MMM D")}`}
                 />
                 <StatCard
                   label="Lowest class"
+                  color="rose"
+                  index={3}
                   icon={TrendingDown}
                   value={stats.worst.present}
                   hint={`present · ${dayjs(stats.worst.date).format("MMM D")}`}
                 />
               </section>
 
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-4 lg:grid-cols-3">
                 <Card className="lg:col-span-2" aria-labelledby="daily">
                   <CardHeader
                     id="daily"
+                    icon={LineChart}
+                    iconTile={palette.violet.tile}
                     title="Attendance rate by class"
                     description="Share of students present each class"
                     action={
@@ -263,12 +280,7 @@ const AttendanceReport = () => {
                     <div className="h-[260px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={stats.chart} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-                          <defs>
-                            <linearGradient id="rateFill" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor={colors.primary} stopOpacity={0.18} />
-                              <stop offset="100%" stopColor={colors.primary} stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
+                          {chartGradients(colors)}
                           <CartesianGrid {...grid} />
                           <XAxis dataKey="label" {...axis} minTickGap={16} />
                           <YAxis {...axis} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v) => `${v}%`} />
@@ -283,8 +295,8 @@ const AttendanceReport = () => {
                             type="monotone"
                             dataKey="rate"
                             stroke={colors.primary}
-                            strokeWidth={2}
-                            fill="url(#rateFill)"
+                            strokeWidth={2.5}
+                            fill="url(#g-area)"
                             dot={stats.chart.length <= 20 ? { r: 2.5, fill: colors.primary, strokeWidth: 0 } : false}
                             activeDot={{ r: 4 }}
                           />
@@ -295,11 +307,18 @@ const AttendanceReport = () => {
                 </Card>
 
                 <Card aria-labelledby="distribution">
-                  <CardHeader id="distribution" title="Distribution" description="All check-ins for this subject" />
+                  <CardHeader
+                    id="distribution"
+                    icon={PieIcon}
+                    iconTile={palette.emerald.tile}
+                    title="Distribution"
+                    description="All check-ins for this subject"
+                  />
                   <CardBody>
                     <div className="relative mx-auto h-[190px] max-w-[220px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
+                          {chartGradients(colors)}
                           <Pie
                             data={pie}
                             dataKey="value"
@@ -312,7 +331,7 @@ const AttendanceReport = () => {
                             endAngle={-270}
                           >
                             {pie.map((p) => (
-                              <Cell key={p.name} fill={p.color} />
+                              <Cell key={p.name} fill={p.fill} />
                             ))}
                           </Pie>
                           <Tooltip
@@ -333,7 +352,10 @@ const AttendanceReport = () => {
                     </div>
                     <div className="mt-5 grid grid-cols-2 gap-3 text-center">
                       {pie.map((p) => (
-                        <div key={p.name} className="rounded-lg bg-surface-2/70 py-2">
+                        <div
+                          key={p.name}
+                          className={`rounded-xl py-2.5 ${p.name === "Present" ? palette.emerald.soft : palette.rose.soft}`}
+                        >
                           <LegendDot color={p.color}>{p.name}</LegendDot>
                           <p className="mt-0.5 text-base font-semibold tabular-nums text-ink">{p.value}</p>
                         </div>
@@ -344,11 +366,12 @@ const AttendanceReport = () => {
               </div>
 
               <Card aria-labelledby="present-count">
-                <CardHeader id="present-count" title="Students present per class" />
+                <CardHeader id="present-count" icon={BarChart3} iconTile={palette.indigo.tile} title="Students present per class" />
                 <CardBody>
                   <div className="h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={stats.chart} margin={{ top: 8, right: 4, bottom: 0, left: -18 }} barCategoryGap="30%">
+                        {chartGradients(colors)}
                         <CartesianGrid {...grid} />
                         <XAxis dataKey="label" {...axis} minTickGap={16} />
                         <YAxis {...axis} allowDecimals={false} />
@@ -356,7 +379,7 @@ const AttendanceReport = () => {
                           cursor={cursor}
                           content={<ChartTooltip formatter={(v, _n, p) => [`${v} of ${p.payload.total}`, "Present"]} />}
                         />
-                        <Bar dataKey="present" fill={colors.primary} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                        <Bar dataKey="present" fill="url(#g-primary)" radius={[8, 8, 3, 3]} maxBarSize={28} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -364,7 +387,13 @@ const AttendanceReport = () => {
               </Card>
 
               <Card className="overflow-hidden" aria-labelledby="sessions">
-                <CardHeader id="sessions" title="Class history" description={`${stats.sessions.length} classes`} />
+                <CardHeader
+                  id="sessions"
+                  icon={History}
+                  iconTile={palette.sky.tile}
+                  title="Class history"
+                  description={`${stats.sessions.length} classes`}
+                />
                 <div className="mt-4 border-t border-line">
                   <DataTable
                     caption="Class history"

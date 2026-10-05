@@ -7,11 +7,11 @@ export const navigation = {
     base: "/studentdashboard",
     workspace: "Student",
     items: [
-      { name: "Overview", path: "/studentdashboard", icon: LayoutGrid, mobile: true },
-      { name: "Attendance", path: "/studentdashboard/attendance", icon: UserCheck, mobile: true },
-      { name: "Assignments", path: "/studentdashboard/assignments", icon: ClipboardList, mobile: true },
-      { name: "Calendar", path: "/studentdashboard/calendar", icon: CalendarDays, mobile: true },
-      { name: "Holidays", path: "/studentdashboard/holidays", icon: CalendarRange },
+      { name: "Overview", path: "/studentdashboard", icon: LayoutGrid, color: "indigo", mobile: true },
+      { name: "Attendance", path: "/studentdashboard/attendance", icon: UserCheck, color: "emerald", mobile: true },
+      { name: "Assignments", path: "/studentdashboard/assignments", icon: ClipboardList, color: "amber", mobile: true },
+      { name: "Calendar", path: "/studentdashboard/calendar", icon: CalendarDays, color: "sky", mobile: true },
+      { name: "Holidays", path: "/studentdashboard/holidays", icon: CalendarRange, color: "rose" },
     ],
     settingsPath: "/studentdashboard/settings",
     holidaysPath: "/studentdashboard/holidays",
@@ -20,18 +20,18 @@ export const navigation = {
     base: "/teacherdashboard",
     workspace: "Teacher",
     items: [
-      { name: "Overview", path: "/teacherdashboard", icon: LayoutGrid, mobile: true },
-      { name: "Take attendance", short: "Attendance", path: "/teacherdashboard/attendance", icon: ScanFace, mobile: true },
-      { name: "Reports", path: "/teacherdashboard/reports", icon: BarChart3, mobile: true },
-      { name: "Assignments", path: "/teacherdashboard/assignment", icon: ClipboardList, mobile: true },
-      { name: "Holidays", path: "/teacherdashboard/holiday-annoucement", icon: CalendarRange },
+      { name: "Overview", path: "/teacherdashboard", icon: LayoutGrid, color: "indigo", mobile: true },
+      { name: "Take attendance", short: "Attendance", path: "/teacherdashboard/attendance", icon: ScanFace, color: "indigo", mobile: true },
+      { name: "Reports", path: "/teacherdashboard/reports", icon: BarChart3, color: "violet", mobile: true },
+      { name: "Assignments", path: "/teacherdashboard/assignment", icon: ClipboardList, color: "amber", mobile: true },
+      { name: "Holidays", path: "/teacherdashboard/holiday-annoucement", icon: CalendarRange, color: "rose" },
     ],
     settingsPath: "/teacherdashboard/settings",
     holidaysPath: "/teacherdashboard/holiday-annoucement",
   },
 };
 
-export const settingsItem = { name: "Settings", icon: Settings };
+export const settingsItem = { name: "Settings", icon: Settings, color: "violet" };
 
 export const isActivePath = (pathname, item, base) => {
   const p = pathname.toLowerCase().replace(/\/+$/, "");
@@ -39,8 +39,9 @@ export const isActivePath = (pathname, item, base) => {
   return target === base ? p === base : p === target || p.startsWith(`${target}/`);
 };
 
-export const currentPageName = (pathname, config) => {
-  const all = [...config.items, { ...settingsItem, path: config.settingsPath }];
-  const match = all.find((item) => isActivePath(pathname, item, config.base));
-  return match?.name || "Overview";
-};
+export const allItems = (config) => [...config.items, { ...settingsItem, path: config.settingsPath }];
+
+export const currentPage = (pathname, config) =>
+  allItems(config).find((item) => isActivePath(pathname, item, config.base)) || config.items[0];
+
+export const currentPageName = (pathname, config) => currentPage(pathname, config).name;

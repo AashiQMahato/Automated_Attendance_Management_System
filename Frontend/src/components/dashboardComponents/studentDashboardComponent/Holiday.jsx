@@ -21,8 +21,13 @@ const Holiday = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Holidays" description="Academic breaks and observances announced by your institution." />
+    <div className="space-y-4">
+      <PageHeader
+        icon={CalendarRange}
+        color="rose"
+        title="Holidays"
+        description="Academic breaks and observances announced by your institution."
+      />
 
       <AsyncContent
         loading={loading}

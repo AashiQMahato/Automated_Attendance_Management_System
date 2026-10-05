@@ -1,17 +1,17 @@
 import React from "react";
 import { initials } from "../../lib/format";
+import { colorFor, colors } from "./colors";
 
-const sizes = { sm: "h-7 w-7 text-[11px]", md: "h-8 w-8 text-xs", lg: "h-10 w-10 text-sm" };
+const sizes = { sm: "h-7 w-7 text-[11px]", md: "h-9 w-9 text-xs", lg: "h-11 w-11 text-sm" };
 
-const Avatar = ({ name, src, size = "md", accent = true, className = "" }) =>
+// Initials on a tint picked from the name, so people stay recognizable.
+const Avatar = ({ name, src, size = "md", className = "" }) =>
   src ? (
-    <img src={src} alt="" className={`shrink-0 rounded-full object-cover ${sizes[size]} ${className}`} />
+    <img src={src} alt="" className={`shrink-0 rounded-full object-cover ring-2 ring-surface ${sizes[size]} ${className}`} />
   ) : (
     <span
       aria-hidden="true"
-      className={`inline-flex shrink-0 select-none items-center justify-center rounded-full font-semibold ${
-        accent ? "bg-accent/10 text-accent" : "bg-surface-2 text-ink-2"
-      } ${sizes[size]} ${className}`}
+      className={`inline-flex shrink-0 select-none items-center justify-center rounded-full font-semibold ${colors[colorFor(name)].tile} ${sizes[size]} ${className}`}
     >
       {initials(name)}
     </span>
