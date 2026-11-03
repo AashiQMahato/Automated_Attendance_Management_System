@@ -35,7 +35,9 @@ export const Card = ({
     : {};
   return (
     <MotionTag
-      className={`rounded-panel ${variants[variant] || variants.glass} ${
+      // min-w-0: as a grid/flex item a card must be allowed to shrink below its
+      // content width, or wide content pushes the page sideways on phones.
+      className={`min-w-0 rounded-panel ${variants[variant] || variants.glass} ${
         interactive ? "transition-[box-shadow,transform] duration-300 ease-apple hover:-translate-y-0.5 hover:shadow-lift" : ""
       } ${className}`}
       {...motionProps}

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Modal, message } from "antd";
-import { Eye, KeyRound, Trash2, UserPlus, Users } from "lucide-react";
+import { message } from "antd";
+import { BookOpen, Eye, GraduationCap, KeyRound, Presentation, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
 import api from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
 import { dayjs, SEMESTER_OPTIONS } from "../../../lib/format";
@@ -10,7 +10,10 @@ import { Card, CardHeader } from "../../ui/Card";
 import DataTable from "../../ui/DataTable";
 import Field, { inputClass } from "../../ui/Field";
 import Select from "../../ui/Select";
-import PageHeader from "../../ui/PageHeader";
+import { DashboardHeader } from "../../ui/PageHeader";
+import ConfirmDialog from "../../ui/ConfirmDialog";
+import StatCard from "../../ui/StatCard";
+import { ProgressBar } from "../../ui/Progress";
 import SidePanel from "../../ui/SidePanel";
 import StatusBadge from "../../ui/StatusBadge";
 import AsyncContent from "../../ui/AsyncContent";
@@ -19,7 +22,7 @@ import { colors as palette } from "../../ui/colors";
 import SegmentedControl from "../../ui/SegmentedControl";
 import UserActivity from "./UserActivity";
 
-const ROLE_COLOR = { Admin: "rose", Teacher: "indigo", Student: "emerald" };
+const ROLE_COLOR = { Admin: "violet", Teacher: "sky", Student: "emerald" };
 const EMPTY_FORM = {
   role: "Student",
   fullName: "",
@@ -140,6 +143,15 @@ const AdminAccounts = () => {
     reload,
     setData,
   } = useAsync(async () => (await api.get("/users")).data.data);
+  // Overview only; the accounts table doesn't depend on it.
+  const subjectsState = useAsync(async () => {
+    try {
+      return (await api.get("/subjects")).data?.data || [];
+    } catch (e) {
+      if (e.response?.status === 404) return [];
+      throw e;
+    }
+  });
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -229,9 +241,10 @@ const AdminAccounts = () => {
 
   return (
     <div className="space-y-4">
-      <PageHeader
+      <DashboardHeader
         icon={Users}
-        color="rose"
+        color="indigo"
+        eyebrow="Administration"
         title="Accounts"
         description="Everyone who can sign in. Create accounts for any role and see what each person has done."
         actions={
@@ -245,6 +258,99 @@ const AdminAccounts = () => {
         }
       />
 
+      {users && (
+        <>
+          <section aria-label="Overview" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+            <StatCard label="All accounts" icon={Users} color="indigo" index={0} value={users.length} hint={`${count("Admin")} admin`} />
+            <StatCard label="Teachers" icon={Presentation} color="sky" index={1} value={count("Teacher")} hint="Can take attendance" />
+            <StatCard label="Students" icon={GraduationCap} color="emerald" index={2} value={count("Student")} hint="Self sign-up or admin-created" />
+            <StatCard
+              label="Subjects"
+              icon={BookOpen}
+              color="violet"
+              index={3}
+              value={subjectsState.data ? subjectsState.data.length : "—"}
+              hint={
+                subjectsState.data
+                  ? `${subjectsState.data.filter((sub) => !sub.teacher).length} without a teacher`
+                  : subjectsState.error
+                    ? "Couldn't load subjects"
+                    : "Loading…"
+              }
+            />
+          </section>
+
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <Card aria-labelledby="by-semester">
+              <CardHeader id="by-semester" icon={GraduationCap} iconTile={palette.emerald.tile} title="Students by semester" />
+              <div className="space-y-2.5 p-5">
+                {(() => {
+                  const bySem = SEMESTER_OPTIONS.map((o) => ({
+                    label: o.label,
+                    n: users.filter((u) => u.role === "Student" && String(u.semester) === String(o.value)).length,
+                  })).filter((r) => r.n > 0);
+                  const max = Math.max(1, ...bySem.map((r) => r.n));
+                  return bySem.length === 0 ? (
+                    <p className="text-[13px] text-ink-3">No students yet.</p>
+                  ) : (
+                    bySem.map((r) => (
+                      <div key={r.label} className="flex items-center gap-3">
+                        <span className="w-24 shrink-0 text-[13px] text-ink-2">{r.label}</span>
+                        <ProgressBar value={(r.n / max) * 100} tone="present" label={`${r.label}: ${r.n} students`} className="!h-2" />
+                        <span className="w-8 text-right text-[13px] font-semibold tabular-nums text-ink">{r.n}</span>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            </Card>
+            <Card aria-labelledby="coverage">
+              <CardHeader id="coverage" icon={ShieldCheck} iconTile={palette.violet.tile} title="Subject coverage" description="Subjects with an assigned teacher" />
+              <div className="p-5">
+                {!subjectsState.data ? (
+                  <p className="text-[13px] text-ink-3">{subjectsState.error ? "Couldn't load subjects." : "Loading…"}</p>
+                ) : subjectsState.data.length === 0 ? (
+                  <p className="text-[13px] text-ink-3">No subjects yet.</p>
+                ) : (
+                  (() => {
+                    const assigned = subjectsState.data.filter((sub) => sub.teacher).length;
+                    const total = subjectsState.data.length;
+                    return (
+                      <>
+                        <div className="flex items-end justify-between">
+                          <p className="text-[32px] font-semibold leading-none tracking-[-0.035em] tabular-nums text-ink">
+                            {assigned}
+                            <span className="text-lg text-ink-3">/{total}</span>
+                          </p>
+                          <span className="text-[13px] text-ink-3">{Math.round((assigned / total) * 100)}% covered</span>
+                        </div>
+                        <ProgressBar className="mt-3 !h-2" value={(assigned / total) * 100} tone="info" label="Subjects with a teacher" />
+                        <ul className="mt-4 space-y-1.5">
+                          {users
+                            .filter((u) => u.role === "Teacher")
+                            .map((t) => ({ t, n: subjectsState.data.filter((sub) => (sub.teacher?._id || sub.teacher) === t._id).length }))
+                            .sort((a, b) => b.n - a.n)
+                            .slice(0, 4)
+                            .map(({ t, n }) => (
+                              <li key={t._id} className="flex items-center gap-2.5 text-[13px]">
+                                <Avatar name={t.fullName} size="sm" />
+                                <span className="min-w-0 flex-1 truncate text-ink-2">{t.fullName}</span>
+                                <span className="tabular-nums text-ink-3">
+                                  {n} {n === 1 ? "subject" : "subjects"}
+                                </span>
+                              </li>
+                            ))}
+                        </ul>
+                      </>
+                    );
+                  })()
+                )}
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+
       <AsyncContent
         loading={loading}
         error={error}
@@ -256,7 +362,7 @@ const AdminAccounts = () => {
           <Card>
             <CardHeader
               icon={Users}
-              iconTile={palette.rose.tile}
+              iconTile={palette.indigo.tile}
               title="All accounts"
               description={`${count("Teacher")} teachers · ${count("Student")} students · ${count("Admin")} admin`}
             />
@@ -299,29 +405,15 @@ const AdminAccounts = () => {
         )}
       </AsyncContent>
 
-      <Modal
-        title="Delete account?"
+      <ConfirmDialog
         open={!!toDelete}
         onCancel={() => setToDelete(null)}
-        footer={null}
-        width={440}
-      >
-        <p className="text-sm text-ink-2">
-          {toDelete?.fullName} ({toDelete?.email}) will no longer be able to
-          sign in. {DELETE_NOTE[toDelete?.role]} This can&apos;t be undone.
-        </p>
-        <div className="mt-6 flex justify-end gap-2">
-          <Button onClick={() => setToDelete(null)}>Cancel</Button>
-          <Button
-            variant="danger"
-            icon={Trash2}
-            loading={deleting}
-            onClick={deleteAccount}
-          >
-            Delete account
-          </Button>
-        </div>
-      </Modal>
+        onConfirm={deleteAccount}
+        loading={deleting}
+        title="Delete account?"
+        description={`${toDelete?.fullName || ""} (${toDelete?.email || ""}) will no longer be able to sign in. ${DELETE_NOTE[toDelete?.role] || ""} This can't be undone.`}
+        confirmLabel="Delete account"
+      />
 
       <SidePanel
         open={!!viewing}

@@ -532,7 +532,7 @@ const HomePage = () => {
               </Button>
             }
           />
-          <div className="grid divide-y divide-line/60 md:grid-cols-[minmax(0,3fr),minmax(0,2fr)] md:divide-x md:divide-y-0">
+          <div className="grid grid-cols-1 divide-y divide-line/60 md:grid-cols-[minmax(0,3fr),minmax(0,2fr)] md:divide-x md:divide-y-0">
             <div className="p-2">
               <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">Deadlines</p>
               {upcoming.data.assignments.length === 0 ? (

@@ -14,6 +14,7 @@ import reportsDark from "../../assets/landing/reports-dark.jpeg";
 import studentOverviewDark from "../../assets/landing/student-overview-dark.jpeg";
 import calendarDark from "../../assets/landing/calendar-dark.jpeg";
 import { useTheme } from "../../theme/useTheme";
+import AmbientBackground from "../ui/AmbientBackground";
 
 const NAV = [
   { href: "/#how-it-works", label: "How it works" },
@@ -73,7 +74,9 @@ export const Reveal = ({ children, className = "", delay = 0 }) => {
 const Screenshot = ({ src, dark, alt, eager = false }) => {
   const { resolved } = useTheme();
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgb(17_19_43/0.04),0_24px_60px_-24px_rgb(17_19_43/0.25)] sm:rounded-2xl">
+    // Liquid glass bezel: a translucent rim around the screenshot.
+    <div className="glass-panel rounded-[18px] p-1.5 shadow-[0_40px_80px_-40px_rgb(31_41_80/0.45)] sm:rounded-[28px] sm:p-2.5">
+      <div className="overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10 sm:rounded-[20px]">
       <img
         src={resolved === "dark" ? dark : src}
         alt={alt}
@@ -83,6 +86,7 @@ const Screenshot = ({ src, dark, alt, eager = false }) => {
         decoding="async"
         className="block h-auto w-full"
       />
+      </div>
     </div>
   );
 };
@@ -90,7 +94,7 @@ const Screenshot = ({ src, dark, alt, eager = false }) => {
 export const PrimaryLink = ({ to, children }) => (
   <Link
     to={to}
-    className="focus-ring inline-flex h-11 items-center gap-2 rounded-full bg-ink px-6 text-[15px] font-medium text-canvas transition-[background-color,transform] duration-150 hover:bg-ink/85 active:scale-[0.97]"
+    className="focus-ring inline-flex h-12 items-center gap-2 rounded-full bg-brand-gradient px-6 text-[15px] font-medium text-white shadow-glow transition-[filter,transform] duration-150 hover:brightness-110 active:scale-[0.97]"
   >
     {children}
   </Link>
@@ -139,8 +143,8 @@ export const SectionTitle = ({ children, className = "" }) => (
 );
 
 export const Header = () => (
-  <header className="sticky top-0 z-50 border-b border-line/70 bg-surface/75 backdrop-blur-xl backdrop-saturate-150">
-    <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
+  <header className="sticky top-0 z-50 px-3 pt-3 sm:px-4">
+    <div className="glass-chrome mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 rounded-full pl-4 pr-2 sm:pl-5">
       <Link to="/" className="focus-ring flex items-center gap-2 rounded-lg">
         <img src={logo} alt="" className="h-7 w-7" />
         <span className="text-[15px] font-semibold tracking-tight text-ink">
@@ -165,13 +169,13 @@ export const Header = () => (
         <ThemeToggle />
         <Link
           to="/login"
-          className="focus-ring rounded-full px-3 py-1.5 text-[13px] font-medium text-ink-2 transition-colors hover:text-ink"
+          className="focus-ring whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium text-ink-2 transition-colors hover:text-ink sm:px-3"
         >
           Sign in
         </Link>
         <Link
           to="/signup"
-          className="focus-ring rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-medium text-canvas transition-[background-color,transform] duration-150 hover:bg-ink/85 active:scale-[0.97]"
+          className="focus-ring whitespace-nowrap rounded-full bg-brand-gradient px-3.5 py-2 text-[13px] sm:px-4 font-medium text-white shadow-glow transition-[filter,transform] duration-150 hover:brightness-110 active:scale-[0.97]"
         >
           Get started
         </Link>
@@ -212,7 +216,7 @@ const Hero = () => (
 const HowItWorks = () => (
   <section
     id="how-it-works"
-    className="scroll-mt-14 bg-canvas px-4 py-24 sm:px-6 sm:py-32"
+    className="scroll-mt-20 border-y border-line/50 bg-white/45 dark:bg-white/[0.025] px-4 py-24 sm:px-6 sm:py-32"
   >
     <div className="mx-auto max-w-6xl">
       <Reveal className="max-w-2xl">
@@ -261,7 +265,7 @@ const Split = ({
 }) => (
   <section
     id={id}
-    className={`scroll-mt-14 px-4 py-24 sm:px-6 sm:py-32 ${tinted ? "bg-canvas" : ""}`}
+    className={`scroll-mt-20 px-4 py-24 sm:px-6 sm:py-32 ${tinted ? "border-y border-line/50 bg-white/45 dark:bg-white/[0.025]" : ""}`}
   >
     <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
       <Reveal className={reverse ? "lg:order-2" : ""}>
@@ -301,7 +305,7 @@ const Calendar = () => (
 const Privacy = () => (
   <section
     id="privacy"
-    className="scroll-mt-14 bg-[#11132B] px-4 py-24 text-white dark:bg-surface-2 sm:px-6 sm:py-32"
+    className="scroll-mt-20 bg-[#101827] bg-[radial-gradient(60%_80%_at_100%_0%,rgb(82_103_232/0.35),transparent_70%),radial-gradient(50%_70%_at_0%_100%,rgb(32_185_154/0.2),transparent_70%)] px-4 py-24 text-white dark:bg-[#0B111D] sm:px-6 sm:py-32"
   >
     <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:gap-16">
       <Reveal>
@@ -383,8 +387,9 @@ export const Footer = () => (
 const LandingPage = () => (
   <div
     id="top"
-    className="min-h-screen bg-surface font-sans text-ink antialiased"
+    className="relative min-h-screen font-sans text-ink antialiased"
   >
+    <AmbientBackground />
     <Header />
     <main>
       <Hero />
@@ -411,7 +416,7 @@ const LandingPage = () => (
         reverse
         tinted
       />
-      <div className="bg-canvas">
+      <div className="border-y border-line/50 bg-white/45 dark:bg-white/[0.025]">
         <Calendar />
       </div>
       <Privacy />

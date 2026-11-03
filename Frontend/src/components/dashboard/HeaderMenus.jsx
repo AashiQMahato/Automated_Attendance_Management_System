@@ -13,11 +13,11 @@ import { dayjs, titleCase } from "../../lib/format";
 const iconButton =
   "focus-ring relative inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-2 transition-[background-color,color,box-shadow] hover:bg-surface hover:text-ink hover:shadow-xs dark:hover:bg-white/10";
 
-export const ThemeToggle = () => {
+export const ThemeToggle = ({ tooltipSide = "bottom" }) => {
   const { resolved, setPreference } = useTheme();
   const next = resolved === "dark" ? "light" : "dark";
   return (
-    <Tooltip label={`${next === "dark" ? "Dark" : "Light"} mode`} side="bottom">
+    <Tooltip label={`${next === "dark" ? "Dark" : "Light"} mode`} side={tooltipSide}>
       <button type="button" onClick={() => setPreference(next)} aria-label={`Switch to ${next} mode`} className={iconButton}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.span

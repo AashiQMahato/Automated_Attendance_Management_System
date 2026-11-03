@@ -5,6 +5,8 @@ const Tooltip = ({ label, side = "top", children, className = "" }) => {
   const pos = {
     top: "bottom-full left-1/2 mb-2 -translate-x-1/2",
     bottom: "top-full left-1/2 mt-2 -translate-x-1/2",
+    // Right-aligned to the trigger, for controls at the window's right edge.
+    "bottom-end": "top-full right-0 mt-2",
     right: "left-full top-1/2 ml-3 -translate-y-1/2",
   }[side];
   return (

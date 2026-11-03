@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import logo from "../../assets/Logo.svg";
 import { Eyebrow, Footer, Header, PointList, PrimaryLink, Reveal, SectionTitle, TextLink } from "./LandingPage";
+import AmbientBackground from "../ui/AmbientBackground";
 
 const PIPELINE = [
   { title: "Detect", body: "YOLOv8, trained for faces, finds every face in the class photo." },
@@ -24,7 +25,8 @@ const Fact = ({ term, children }) => (
 );
 
 const AboutPage = () => (
-  <div className="min-h-screen bg-surface font-sans text-ink antialiased">
+  <div className="relative min-h-screen font-sans text-ink antialiased">
+    <AmbientBackground />
     <Header />
     <main>
       <section className="px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
@@ -40,7 +42,7 @@ const AboutPage = () => (
         </Reveal>
       </section>
 
-      <section className="bg-canvas px-4 py-24 sm:px-6 sm:py-32">
+      <section className="border-y border-line/50 bg-white/45 dark:bg-white/[0.025] px-4 py-24 sm:px-6 sm:py-32">
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal>
             <Eyebrow>Why</Eyebrow>
@@ -83,7 +85,7 @@ const AboutPage = () => (
         </div>
       </section>
 
-      <section className="bg-canvas px-4 py-24 sm:px-6 sm:py-32">
+      <section className="border-y border-line/50 bg-white/45 dark:bg-white/[0.025] px-4 py-24 sm:px-6 sm:py-32">
         <div className="mx-auto max-w-6xl">
           <Reveal className="max-w-2xl">
             <Eyebrow>The project</Eyebrow>
