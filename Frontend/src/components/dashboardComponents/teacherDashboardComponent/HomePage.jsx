@@ -20,7 +20,9 @@ import {
 import store from "../../../zustand/loginStore";
 import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
-import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, firstName, formatPercent, greeting, percent, titleCase } from "../../../lib/format";
+import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, dueStatus, firstName, formatPercent, greeting, percent, titleCase } from "../../../lib/format";
+import { holidayStatus } from "../../../lib/holidays";
+import DateTile from "../../ui/DateTile";
 import { sessionRate, studentRatesFromSessions, trendSeries } from "../../../lib/attendance";
 import HeroBanner, { HeroAside, HeroChip } from "../../ui/HeroBanner";
 import { colorFor, colors as palette } from "../../ui/colors";
@@ -55,6 +57,21 @@ const HomePage = () => {
       ),
     );
     return { subjects, students: studentsRes.data.data || [], sessions: sessionLists.flat() };
+  }, []);
+  // Secondary feed for "Coming up"; failures only hide that card.
+  const upcoming = useAsync(async () => {
+    const [assignments, holidays] = await Promise.allSettled([api.get("/assignments"), api.get("/holidays")]);
+    const today = dayjs().startOf("day");
+    return {
+      assignments: (assignments.status === "fulfilled" ? assignments.value.data?.data || [] : [])
+        .filter((a) => !dayjs(a.dueDate).isBefore(today))
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+        .slice(0, 4),
+      holidays: (holidays.status === "fulfilled" ? holidays.value.data?.data || [] : [])
+        .filter((h) => holidayStatus(h) !== "passed")
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+        .slice(0, 3),
+    };
   }, []);
   const { colors, axis, grid, cursor } = useChartTheme();
   const [view, setView] = useState("trend");
@@ -500,6 +517,77 @@ const HomePage = () => {
           )}
         </Card>
       </div>
+
+      {upcoming.data && (upcoming.data.assignments.length > 0 || upcoming.data.holidays.length > 0) && (
+        <Card aria-labelledby="coming-up">
+          <CardHeader
+            id="coming-up"
+            icon={CalendarRange}
+            iconTile={palette.sky.tile}
+            title="Coming up"
+            description="Assignment deadlines and notices"
+            action={
+              <Button size="sm" variant="ghost" onClick={() => navigate("/teacherdashboard/assignment")}>
+                All assignments
+              </Button>
+            }
+          />
+          <div className="grid divide-y divide-line/60 md:grid-cols-[minmax(0,3fr),minmax(0,2fr)] md:divide-x md:divide-y-0">
+            <div className="p-2">
+              <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">Deadlines</p>
+              {upcoming.data.assignments.length === 0 ? (
+                <p className="px-3 py-4 text-[13px] text-ink-3">No upcoming deadlines.</p>
+              ) : (
+                <ul>
+                  {upcoming.data.assignments.map((a) => {
+                    const due = dueStatus(a.dueDate);
+                    const subjectId = a.subject?._id || a.subject;
+                    return (
+                      <li key={a._id}>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/teacherdashboard/assignment")}
+                          className="focus-ring flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-ink/[0.04] dark:hover:bg-white/[0.05]"
+                        >
+                          <DateTile date={a.dueDate} color={colorFor(subjectId)} />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium text-ink">{titleCase(a.title)}</span>
+                            <span className="block truncate text-xs text-ink-3">
+                              {titleCase(a.subject?.name) || "Subject"} · {a.submissions?.length || 0} submitted
+                            </span>
+                          </span>
+                          <StatusBadge tone={due.tone}>{due.label}</StatusBadge>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+            <div className="p-2">
+              <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">Notices</p>
+              {upcoming.data.holidays.length === 0 ? (
+                <p className="px-3 py-4 text-[13px] text-ink-3">No upcoming holidays.</p>
+              ) : (
+                <ul>
+                  {upcoming.data.holidays.map((h) => (
+                    <li key={h._id} className="flex items-center gap-3 rounded-2xl px-3 py-2.5">
+                      <DateTile date={h.startDate} color="rose" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-ink">{titleCase(h.title)}</span>
+                        <span className="block text-xs text-ink-3">
+                          {holidayStatus(h) === "ongoing" ? "Ongoing · ends " : ""}
+                          {dayjs(holidayStatus(h) === "ongoing" ? h.endDate : h.startDate).format("ddd, MMM D")}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       <SidePanel
         open={!!studentDetail}

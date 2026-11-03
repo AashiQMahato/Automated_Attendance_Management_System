@@ -185,7 +185,7 @@ const StudentCalendar = () => {
                   onChange={(e) => setSearchDate(e.target.value)}
                   placeholder={`${system.toUpperCase()} YYYY-MM-DD`}
                   inputMode="numeric"
-                  className="focus-ring h-10 w-44 rounded-xl border border-line bg-surface pl-9 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:ring-offset-0"
+                  className="focus-ring h-10 w-44 rounded-control border border-line bg-surface/70 pl-9 dark:bg-canvas/40 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:ring-offset-0"
                 />
               </label>
               <Button type="submit">Go</Button>
@@ -214,7 +214,7 @@ const StudentCalendar = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-7 border-b border-line bg-surface-2/50">
+          <div className="grid grid-cols-7 border-b border-line/70 bg-ink/[0.02] dark:bg-white/[0.03]">
             {WEEKDAYS.map((d, i) => (
               <div
                 key={d}
@@ -262,7 +262,7 @@ const StudentCalendar = () => {
                       }`}
                       onClick={() => setSelected(cell.date)}
                       className={`group relative flex h-16 flex-col items-stretch gap-1 p-1.5 text-left outline-none transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-brand/60 sm:h-24 sm:p-2 ${
-                        cell.inMonth ? "bg-surface hover:bg-brand/[0.03]" : "bg-surface-2/60 text-ink-3"
+                        cell.inMonth ? "bg-surface hover:bg-accent/[0.04]" : "bg-surface-2 text-ink-3 [&>*]:opacity-70"
                       } ${isSelected ? "z-[1] ring-2 ring-inset ring-brand/60" : ""}`}
                     >
                       <span className="flex items-start justify-between gap-1">

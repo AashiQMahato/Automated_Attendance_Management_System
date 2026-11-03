@@ -34,6 +34,21 @@ const SidePanel = ({
   children,
 }) => {
   const small = useIsSmall();
+
+  // antd only handles Escape while focus is inside the drawer; content that
+  // unmounts (e.g. a submitted form) drops focus to <body>. Close from
+  // anywhere, unless a dialog is stacked on top.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      if (document.querySelector(".ant-modal-wrap:not([style*='display: none']) .ant-modal")) return;
+      onClose?.();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
     <Drawer
       open={open}

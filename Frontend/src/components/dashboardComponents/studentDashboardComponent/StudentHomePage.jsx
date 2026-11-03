@@ -17,6 +17,9 @@ import {
   UserCheck,
   CircleUserRound,
   UserX,
+  Check,
+  History,
+  X,
 } from "lucide-react";
 import store from "../../../zustand/loginStore";
 import api, { fetchSubjects } from "../../../lib/api";
@@ -92,7 +95,7 @@ const StudentHomePage = () => {
           kind: "holiday",
           date: h.startDate,
           title: titleCase(h.title),
-          meta: `${dayjs(h.endDate).diff(h.startDate, "day") + 1} days`,
+          meta: ((n) => `${n} ${n === 1 ? "day" : "days"}`)(dayjs(h.endDate).diff(h.startDate, "day") + 1),
         })),
     ]
       .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -498,6 +501,35 @@ const StudentHomePage = () => {
               />
             </div>
           </Card>
+
+          {derived.entries.length > 0 && (
+            <Card aria-labelledby="recent-activity">
+              <CardHeader id="recent-activity" icon={History} iconTile={colors.sky.tile} title="Recent activity" description="Your latest classes" />
+              <ol className="relative px-5 py-4">
+                <span className="absolute bottom-6 left-[27px] top-6 w-px bg-line" aria-hidden="true" />
+                {derived.entries.slice(0, 6).map((e) => {
+                  const present = e.status === "present";
+                  return (
+                    <li key={e.id} className="relative flex items-center gap-3 py-1.5">
+                      <span
+                        className={`relative z-[1] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ring-4 ring-[rgb(var(--glass))] ${
+                          present ? "bg-[#20B99A]" : "bg-[#E66B7C]"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {present ? <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} /> : <X className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-medium text-ink">{e.subject}</span>
+                        <span className="block text-[11.5px] text-ink-3">{dayjs(e.date).format("ddd, MMM D")}</span>
+                      </span>
+                      <span className={`text-xs font-medium ${present ? "text-success" : "text-danger"}`}>{present ? "Present" : "Absent"}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </Card>
+          )}
         </div>
       </div>
     </div>

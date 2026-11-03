@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { colors as palette } from "../../ui/colors";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   CalendarCheck,
   CheckCircle2,
@@ -17,24 +16,22 @@ import {
 import store from "../../../zustand/loginStore";
 import api from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
-import { attendanceStatus, dayjs, downloadCsv, formatPercent } from "../../../lib/format";
-import { bySubject, studentEntries, summarize } from "../../../lib/attendance";
+import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, downloadCsv, formatPercent } from "../../../lib/format";
+import AttendanceRing from "../../ui/AttendanceRing";
+import { bySubject, studentEntries, summarize, thresholdGuidance } from "../../../lib/attendance";
 import PageHeader from "../../ui/PageHeader";
 import Button from "../../ui/Button";
 import StatCard from "../../ui/StatCard";
 import StatusBadge from "../../ui/StatusBadge";
 import SegmentedControl from "../../ui/SegmentedControl";
 import DataTable from "../../ui/DataTable";
-import { Card, CardBody, CardHeader } from "../../ui/Card";
-import { ChartTooltip, LegendDot } from "../../ui/Chart";
-import { chartGradients, useChartTheme } from "../../ui/chartTheme";
+import { Card, CardHeader } from "../../ui/Card";
 import { EmptyState } from "../../ui/States";
 import { SkeletonCard, SkeletonStatGrid, SkeletonTable } from "../../ui/Skeleton";
 import AsyncContent from "../../ui/AsyncContent";
 
 const StudentAttendance = () => {
   const { loginUserData } = store((state) => state);
-  const { colors, axis, grid, cursor } = useChartTheme();
   const [statusFilter, setStatusFilter] = useState("all");
   const { data: records, loading, error, reload } = useAsync(() => api.get("/attendance/student").then(({ data }) => data || []), []);
 
@@ -173,15 +170,7 @@ const StudentAttendance = () => {
           icon={BarChart3}
           iconTile={palette.emerald.tile}
           title="By subject"
-          description="Present and absent classes per subject"
-          action={
-            subjectStats.length > 0 && (
-              <div className="hidden items-center gap-3 sm:flex">
-                <LegendDot color={colors.present}>Present</LegendDot>
-                <LegendDot color={colors.absent}>Absent</LegendDot>
-              </div>
-            )
-          }
+          description={`Your standing per subject · minimum ${ATTENDANCE_THRESHOLD}%`}
         />
         {subjectStats.length === 0 ? (
           <EmptyState
@@ -190,31 +179,32 @@ const StudentAttendance = () => {
             description="Once your teachers record classes, you'll see a breakdown per subject here."
           />
         ) : (
-          <CardBody>
-            <div style={{ height: Math.max(200, Math.min(320, subjectStats.length * 56 + 60)) }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={subjectStats} margin={{ top: 4, right: 4, bottom: 0, left: -18 }} barGap={4} barCategoryGap="30%">
-                  {chartGradients(colors)}
-                  <CartesianGrid {...grid} />
-                  <XAxis dataKey="name" {...axis} interval={0} tickFormatter={(v) => (v.length > 22 ? `${v.slice(0, 21)}…` : v)} />
-                  <YAxis {...axis} allowDecimals={false} />
-                  <Tooltip
-                    cursor={cursor}
-                    content={
-                      <ChartTooltip
-                        formatter={(value, name, p) => [
-                          `${value} (${formatPercent(name === "Present" ? p.payload.rate : 100 - p.payload.rate, 0)})`,
-                          name,
-                        ]}
-                      />
-                    }
-                  />
-                  <Bar dataKey="present" name="Present" fill="url(#g-present)" radius={[8, 8, 3, 3]} maxBarSize={26} />
-                  <Bar dataKey="absent" name="Absent" fill="url(#g-absent)" radius={[8, 8, 3, 3]} maxBarSize={26} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardBody>
+          <ul className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
+            {subjectStats.map((sub) => {
+              const g = thresholdGuidance(sub);
+              const st = attendanceStatus(sub.rate, sub.total > 0);
+              return (
+                <li key={sub.id} className="glass-well flex flex-col items-center rounded-[20px] px-4 pb-4 pt-5 text-center">
+                  <AttendanceRing rate={sub.rate} total={sub.total} size={96} stroke={9} caption={`${sub.present}/${sub.total}`} label={`${sub.name} attendance ${formatPercent(sub.rate, 0)}`} />
+                  <p className="mt-3 w-full truncate text-sm font-semibold text-ink" title={sub.name}>
+                    {sub.name}
+                  </p>
+                  <StatusBadge tone={st.tone} className="mt-1.5">
+                    {st.label}
+                  </StatusBadge>
+                  {g && (
+                    <p className="mt-2 text-[12px] leading-4 text-ink-3">
+                      {g.kind === "buffer"
+                        ? g.count === 0
+                          ? "Don't miss the next class"
+                          : `Can miss ${g.count} more ${g.count === 1 ? "class" : "classes"}`
+                        : `Attend the next ${g.count} to reach ${ATTENDANCE_THRESHOLD}%`}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </Card>
 

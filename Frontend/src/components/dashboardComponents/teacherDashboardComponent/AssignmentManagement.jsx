@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { colorFor, colors as palette } from "../../ui/colors";
 import { DatePicker, Form, Input, Modal, Upload, message } from "antd";
 import Select from "../../ui/Select";
-import { ClipboardList, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, ClipboardCheck, ClipboardList, Inbox, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
 import { dueStatus, titleCase } from "../../../lib/format";
-import PageHeader from "../../ui/PageHeader";
+import { DashboardHeader } from "../../ui/PageHeader";
+import ConfirmDialog from "../../ui/ConfirmDialog";
+import StatCard from "../../ui/StatCard";
+import SubmissionsPanel from "./SubmissionsPanel";
 import Button from "../../ui/Button";
 import StatusBadge from "../../ui/StatusBadge";
 import DataTable from "../../ui/DataTable";
@@ -25,6 +28,7 @@ const AssignmentManagement = () => {
   const [assignmentToDelete, setAssignmentToDelete] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [viewing, setViewing] = useState(null);
 
   const assignmentsState = useAsync(() => api.get("/assignments").then((res) => res.data.data || []), []);
   const subjectsState = useAsync(fetchSubjects, []);
@@ -131,7 +135,21 @@ const AssignmentManagement = () => {
       header: "Submissions",
       align: "right",
       sortValue: (r) => r.submissions?.length || 0,
-      render: (r) => <span className="tabular-nums">{r.submissions?.length || 0}</span>,
+      render: (r) => {
+        const count = r.submissions?.length || 0;
+        const ungraded = (r.submissions || []).filter((x) => x.grade === undefined || x.grade === null).length;
+        return (
+          <button
+            type="button"
+            onClick={() => setViewing(r)}
+            className="focus-ring inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 tabular-nums transition-colors hover:bg-brand/[0.08] hover:text-brand"
+            aria-label={`${count} submissions for ${r.title}${ungraded ? `, ${ungraded} to grade` : ""}`}
+          >
+            {count}
+            {ungraded > 0 && <span className="rounded-full bg-warning/10 px-1.5 text-[11px] font-semibold text-warning">{ungraded} to grade</span>}
+          </button>
+        );
+      },
     },
     {
       key: "status",
@@ -147,6 +165,9 @@ const AssignmentManagement = () => {
       align: "right",
       render: (r) => (
         <div className="inline-flex gap-1">
+          <Button size="sm" variant="ghost" icon={ClipboardCheck} onClick={() => setViewing(r)}>
+            Review
+          </Button>
           <Button size="sm" variant="ghost" icon={Pencil} onClick={() => openEdit(r)}>
             Edit
           </Button>
@@ -167,9 +188,10 @@ const AssignmentManagement = () => {
 
   return (
     <div className="space-y-4">
-      <PageHeader
+      <DashboardHeader
         icon={ClipboardList}
         color="amber"
+        eyebrow="Classroom"
         title="Assignments"
         description="Create, manage and track student assignments."
         actions={
@@ -178,6 +200,37 @@ const AssignmentManagement = () => {
           </Button>
         }
       />
+
+      {assignments.length > 0 && (
+        <section aria-label="Assignment summary" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+          <StatCard label="Assignments" icon={ClipboardList} color="amber" index={0} value={assignments.length} hint={`${subjects.length} subjects`} />
+          <StatCard
+            label="Open"
+            icon={CalendarClock}
+            color="sky"
+            index={1}
+            value={assignments.filter((a) => dueStatus(a.dueDate).key !== "overdue").length}
+            hint={`${assignments.filter((a) => ["today", "soon"].includes(dueStatus(a.dueDate).key)).length} due within 2 days`}
+          />
+          <StatCard
+            label="Submissions"
+            icon={Inbox}
+            color="indigo"
+            index={2}
+            value={assignments.reduce((n, a) => n + (a.submissions?.length || 0), 0)}
+            hint="Across all assignments"
+          />
+          <StatCard
+            label="To grade"
+            icon={ClipboardCheck}
+            color="rose"
+            index={3}
+            value={assignments.reduce((n, a) => n + (a.submissions || []).filter((x) => x.grade === undefined || x.grade === null).length, 0)}
+            tone="default"
+            hint="Waiting for your review"
+          />
+        </section>
+      )}
 
       <Card className="overflow-hidden">
         <AsyncContent
@@ -238,7 +291,11 @@ const AssignmentManagement = () => {
           <Form.Item name="dueDate" label={label("Due date")} rules={[{ required: true, message: "Please select a due date" }]}>
             <DatePicker className="w-full" format="ddd, MMM D, YYYY" />
           </Form.Item>
-          <Form.Item name="attachments" label={label("Attachments")} extra={<span className="text-xs text-ink-3">Up to 3 files</span>}>
+          <Form.Item
+            name="attachments"
+            // Upload stays uncontrolled; the stored value is its change event (read as .fileList on submit).
+            getValueProps={() => ({})}
+            label={label("Attachments")} extra={<span className="text-xs text-ink-3">Up to 3 files</span>}>
             <Upload maxCount={3} beforeUpload={() => false}>
               <Button icon={Paperclip} size="sm">
                 Attach files
@@ -254,17 +311,17 @@ const AssignmentManagement = () => {
         </Form>
       </Modal>
 
-      <Modal title="Delete assignment?" open={!!assignmentToDelete} onCancel={() => setAssignmentToDelete(null)} footer={null} width={420}>
-        <p className="text-sm text-ink-2">
-          “{titleCase(assignmentToDelete?.title)}” and its submissions will be removed. This can't be undone.
-        </p>
-        <div className="mt-6 flex justify-end gap-2">
-          <Button onClick={() => setAssignmentToDelete(null)}>Cancel</Button>
-          <Button variant="danger" icon={Trash2} loading={deleting} onClick={handleDelete}>
-            Delete
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmDialog
+        open={!!assignmentToDelete}
+        onCancel={() => setAssignmentToDelete(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete assignment?"
+        description={`“${titleCase(assignmentToDelete?.title)}” and its submissions will be removed. This can't be undone.`}
+        confirmLabel="Delete assignment"
+      />
+
+      <SubmissionsPanel assignment={viewing} onClose={() => setViewing(null)} onChanged={() => assignmentsState.reload({ silent: true })} />
     </div>
   );
 };
