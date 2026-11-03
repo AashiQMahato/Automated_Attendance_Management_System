@@ -92,7 +92,7 @@ const CommandMenu = ({ open, onClose, config }) => {
           style={{ background: "transparent" }}
         >
           <motion.div
-            className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[rgb(10_15_28/0.32)] backdrop-blur-[6px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -104,14 +104,14 @@ const CommandMenu = ({ open, onClose, config }) => {
             role="dialog"
             aria-modal="true"
             aria-label="Search and jump"
-            initial={{ opacity: 0, scale: 0.97, y: -8 }}
+            initial={{ opacity: 0, scale: 0.95, y: -12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, y: -4 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.28 }}
-            className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-surface/90 shadow-pop ring-1 ring-black/5 backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10"
+            transition={{ type: "spring", bounce: 0.15, duration: 0.38 }}
+            className="glass-pop relative w-full max-w-xl overflow-hidden rounded-[24px]"
             onKeyDown={onKeyDown}
           >
-            <div className="flex items-center gap-3 border-b border-line px-4">
+            <div className="flex items-center gap-3 border-b border-line/70 px-5">
               <Search className="h-[18px] w-[18px] shrink-0 text-ink-3" aria-hidden="true" />
               <input
                 ref={inputRef}
@@ -125,7 +125,7 @@ const CommandMenu = ({ open, onClose, config }) => {
                 aria-expanded="true"
                 className="h-14 w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3"
               />
-              <kbd className="hidden shrink-0 rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-ink-3 sm:block">
+              <kbd className="hidden shrink-0 rounded-md border border-line bg-surface/70 px-1.5 py-0.5 font-mono text-[11px] font-medium text-ink-3 dark:bg-white/10 sm:block">
                 esc
               </kbd>
             </div>
@@ -151,10 +151,10 @@ const CommandMenu = ({ open, onClose, config }) => {
                       onMouseMove={() => setIndex(i)}
                       onClick={() => run(action)}
                       className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-                        active ? "bg-brand/10 text-ink" : "text-ink-2"
+                        active ? "bg-brand/[0.1] text-ink shadow-[inset_0_0_0_1px_rgb(var(--brand)/0.12)]" : "text-ink-2"
                       }`}
                     >
-                      <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${colors[action.color || "indigo"].tile}`}>
+                      <span className={`flex h-8 w-8 items-center justify-center rounded-[10px] ${colors[action.color || "indigo"].tile}`}>
                         <Icon className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <span className="flex-1 font-medium">{action.label}</span>

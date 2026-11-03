@@ -8,8 +8,21 @@ import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
 import MobileNavigation from "./MobileNavigation";
 import { currentPage, navigation } from "./navigation";
+import AmbientBackground from "../ui/AmbientBackground";
 
 const COLLAPSE_KEY = "sidebar-collapsed";
+
+// Shown while a page's code loads: a header-shaped glass placeholder.
+const PageFallback = () => (
+  <div className="space-y-4" role="status" aria-label="Loading page">
+    <div className="glass-panel h-[104px] rounded-panel" />
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="glass-panel h-[120px] rounded-panel" />
+      ))}
+    </div>
+  </div>
+);
 
 const Shell = ({ role }) => {
   const config = navigation[role];
@@ -50,7 +63,8 @@ const Shell = ({ role }) => {
   const page = currentPage(location.pathname, config);
 
   return (
-    <div className="dashboard-root min-h-screen" data-role={role}>
+    <div className="dashboard-root relative min-h-screen" data-role={role}>
+      <AmbientBackground />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:shadow-pop"
@@ -60,7 +74,8 @@ const Shell = ({ role }) => {
 
       <Sidebar config={config} user={loginUserData} collapsed={collapsed} onLogout={handleLogout} />
 
-      <div className={`transition-[padding] duration-200 ease-apple ${collapsed ? "md:pl-[72px]" : "md:pl-[72px] lg:pl-60"}`}>
+      {/* Sidebar floats 12px from the edge: rail 76px (+24 gutter), full 248px. */}
+      <div className={`transition-[padding] duration-300 ease-apple ${collapsed ? "md:pl-[100px]" : "md:pl-[100px] lg:pl-[272px]"}`}>
         <TopHeader
           config={config}
           page={page}
@@ -72,16 +87,16 @@ const Shell = ({ role }) => {
         <main
           id="main"
           tabIndex={-1}
-          className="mx-auto w-full max-w-[1680px] px-3 pb-28 pt-4 outline-none sm:px-4 md:pb-10 md:pt-5 lg:px-6"
+          className="mx-auto w-full max-w-[1600px] px-3 pb-32 pt-4 outline-none sm:px-4 md:pb-10 md:pr-3 md:pt-5 lg:pl-1 lg:pr-4"
         >
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ type: "spring", bounce: 0, duration: 0.45 }}
           >
             {/* Pages load on demand; the shell stays put meanwhile. */}
-            <Suspense fallback={null}>
+            <Suspense fallback={<PageFallback />}>
               <Outlet context={{ changeTab: (_name, path) => navigate(path) }} />
             </Suspense>
           </motion.div>

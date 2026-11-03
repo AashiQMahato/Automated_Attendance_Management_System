@@ -102,3 +102,24 @@ export const sessionRate = (session) => {
   const present = (session.students || []).filter((s) => s.status === "present").length;
   return { present, total, rate: percent(present, total) };
 };
+
+// Recognition matches at or above this confidence are pre-marked present on
+// the roster; lower matches are shown for the teacher to decide. (Unchanged
+// from the original attendance sheet; the face service has its own threshold.)
+export const AUTO_MARK_CONFIDENCE = 0.7;
+
+const norm = (name) => String(name || "").toLowerCase().trim();
+
+// Splits a face-service response into what the teacher needs to review.
+// faces: [{ name, confidence, recognized?, bbox? }]; roster: [{ name }]
+export const summarizeRecognition = (faces = [], roster = []) => {
+  const onRoster = new Set(roster.map((s) => norm(s.name)));
+  const isMatch = (f) => (typeof f.recognized === "boolean" ? f.recognized : norm(f.name) !== "unknown" && !!f.name);
+  const matched = faces.filter(isMatch);
+  return {
+    confident: matched.filter((f) => f.confidence >= AUTO_MARK_CONFIDENCE && (!roster.length || onRoster.has(norm(f.name)))),
+    review: matched.filter((f) => f.confidence < AUTO_MARK_CONFIDENCE && (!roster.length || onRoster.has(norm(f.name)))),
+    offRoster: roster.length ? matched.filter((f) => !onRoster.has(norm(f.name))) : [],
+    unknown: faces.filter((f) => !isMatch(f)),
+  };
+};

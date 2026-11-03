@@ -110,8 +110,9 @@
 .dark [data-role="Student"], .dark[data-role="Student"] { --accent: 52 211 172; --accent-2: 94 234 212; }
 
 @layer base {
-  html,
-  body {
+  /* Canvas color on <html> only: a body background would paint over the
+     fixed ambient layer (z-index -1). */
+  html {
     background-color: rgb(var(--canvas));
   }
   body {

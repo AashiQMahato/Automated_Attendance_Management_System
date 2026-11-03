@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, MoreHorizontal, X } from "lucide-react";
 import { isActivePath, settingsItem } from "./navigation";
+import { colors } from "../ui/colors";
 
 // Bottom tab bar for phones. Secondary destinations open in a bottom sheet
 // that rises from (and returns to) the tab bar.
@@ -23,18 +24,19 @@ const MobileNavigation = ({ config, onLogout }) => {
   }, [sheetOpen]);
 
   const tabClass = (active) =>
-    `focus-ring flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors ${
-      active ? "text-brand" : "text-ink-3 active:text-ink-2"
+    `focus-ring flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-1.5 text-[10.5px] font-medium transition-[color,transform] active:scale-95 ${
+      active ? "text-accent" : "text-ink-3 active:text-ink-2"
     }`;
 
   return (
     <>
+      {/* Floating glass tab bar */}
       <nav
         aria-label="Primary"
-        className="glass fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/85 backdrop-blur-xl backdrop-saturate-150 md:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed inset-x-0 bottom-0 z-40 px-3 md:hidden"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
       >
-        <div className="mx-auto flex h-16 max-w-md items-stretch px-2">
+        <div className="glass-chrome mx-auto flex h-[64px] max-w-md items-stretch rounded-[26px] px-1.5">
           {primary.map((item) => {
             const active = isActivePath(pathname, item, config.base);
             const Icon = item.icon;
@@ -44,14 +46,14 @@ const MobileNavigation = ({ config, onLogout }) => {
                   {active && (
                     <motion.span
                       layoutId="tab-active"
-                      className="absolute inset-0 rounded-full bg-brand/10 dark:bg-brand/20"
-                      transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                      className="absolute inset-0 rounded-full bg-accent/[0.12] shadow-[inset_0_1px_0_0_rgb(var(--glass-edge)/var(--glass-edge-a))] dark:bg-accent/20"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       aria-hidden="true"
                     />
                   )}
                   <Icon className="relative h-5 w-5" strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
                 </span>
-                {item.short || item.name}
+                <span className="max-w-full truncate">{item.short || item.name}</span>
               </Link>
             );
           })}
@@ -75,7 +77,7 @@ const MobileNavigation = ({ config, onLogout }) => {
           <>
             <motion.div
               key="scrim"
-              className="fixed inset-0 z-50 bg-slate-950/40 md:hidden"
+              className="fixed inset-0 z-50 bg-[rgb(10_15_28/0.35)] backdrop-blur-[4px] md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -88,8 +90,8 @@ const MobileNavigation = ({ config, onLogout }) => {
               role="dialog"
               aria-modal="true"
               aria-label="More"
-              className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl border-t border-line bg-surface shadow-pop md:hidden"
-              style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+              className="glass-pop fixed inset-x-2 bottom-2 z-50 rounded-[28px] md:hidden"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -108,7 +110,7 @@ const MobileNavigation = ({ config, onLogout }) => {
                   type="button"
                   onClick={() => setSheetOpen(false)}
                   aria-label="Close"
-                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-ink-2"
+                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full bg-ink/[0.06] text-ink-2 dark:bg-white/10"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -123,16 +125,18 @@ const MobileNavigation = ({ config, onLogout }) => {
                         to={item.path}
                         aria-current={active ? "page" : undefined}
                         className={`focus-ring flex h-12 items-center gap-3 rounded-xl px-3 text-[15px] ${
-                          active ? "bg-brand/10 font-medium text-brand" : "text-ink-2"
+                          active ? "bg-accent/10 font-medium text-accent" : "text-ink-2"
                         }`}
                       >
-                        <Icon className={`h-5 w-5 ${active ? "text-brand" : "text-ink-3"}`} aria-hidden="true" />
+                        <span className={`flex h-8 w-8 items-center justify-center rounded-[10px] ${colors[item.color || "indigo"].tile}`}>
+                          <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+                        </span>
                         {item.name}
                       </Link>
                     </li>
                   );
                 })}
-                <li className="mt-1 border-t border-line pt-1">
+                <li className="mt-1 border-t border-line/70 pt-1">
                   <button
                     type="button"
                     onClick={onLogout}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CalendarRange, ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import Popover from "../ui/Popover";
 import Tooltip from "../ui/Tooltip";
 import Avatar from "../ui/Avatar";
@@ -10,7 +11,7 @@ import api from "../../lib/api";
 import { dayjs, titleCase } from "../../lib/format";
 
 const iconButton =
-  "focus-ring relative inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-2 transition-colors hover:bg-surface hover:text-brand hover:shadow-xs";
+  "focus-ring relative inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-2 transition-[background-color,color,box-shadow] hover:bg-surface hover:text-ink hover:shadow-xs dark:hover:bg-white/10";
 
 export const ThemeToggle = () => {
   const { resolved, setPreference } = useTheme();
@@ -18,7 +19,18 @@ export const ThemeToggle = () => {
   return (
     <Tooltip label={`${next === "dark" ? "Dark" : "Light"} mode`} side="bottom">
       <button type="button" onClick={() => setPreference(next)} aria-label={`Switch to ${next} mode`} className={iconButton}>
-        {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={resolved}
+            initial={{ rotate: -90, scale: 0.6, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0.6, opacity: 0 }}
+            transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
+            className="inline-flex"
+          >
+            {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </motion.span>
+        </AnimatePresence>
       </button>
     </Tooltip>
   );
@@ -97,7 +109,7 @@ export const NotificationsMenu = ({ holidaysPath }) => {
     >
       {({ close }) => (
         <div>
-          <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <div className="flex items-center justify-between border-b border-line/70 px-4 py-3">
             <p className="text-sm font-semibold text-ink">Announcements</p>
             <span className="text-xs text-ink-3">{items.length ? `${items.length} upcoming` : ""}</span>
           </div>
@@ -118,9 +130,9 @@ export const NotificationsMenu = ({ holidaysPath }) => {
                         close();
                         navigate(holidaysPath);
                       }}
-                      className="focus-ring flex w-full gap-3 px-4 py-2.5 text-left hover:bg-surface-2"
+                      className="focus-ring mx-1.5 flex w-[calc(100%-12px)] gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors hover:bg-ink/[0.04] dark:hover:bg-white/[0.06]"
                     >
-                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300">
                         <CalendarRange className="h-3.5 w-3.5" aria-hidden="true" />
                       </span>
                       <span className="min-w-0">
@@ -154,9 +166,9 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
           type="button"
           {...props}
           aria-label="Account menu"
-          className="focus-ring flex items-center gap-2.5 rounded-full p-0.5 transition-colors hover:bg-surface-2 lg:border lg:border-line lg:bg-surface-2/70 lg:py-1 lg:pl-1 lg:pr-3"
+          className="focus-ring flex items-center gap-2.5 rounded-full p-0.5 transition-colors hover:bg-surface/80 lg:glass-well lg:py-1 lg:pl-1 lg:pr-3"
         >
-          <Avatar name={user.fullName} src={user.avatar} size="md" className="ring-2 ring-surface" />
+          <Avatar name={user.fullName} src={user.avatar} size="md" className="ring-2 ring-accent/30" />
           <span className="hidden min-w-0 text-left leading-tight lg:block">
             <span className="block max-w-[140px] truncate text-[13px] font-semibold text-ink">{user.fullName}</span>
             <span className="block text-[11px] text-ink-3">{user.role}</span>
@@ -170,7 +182,7 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
     >
       {({ close }) => (
         <div>
-          <div className="flex items-center gap-3 border-b border-line px-4 py-3.5">
+          <div className="flex items-center gap-3 border-b border-line/70 bg-gradient-to-b from-accent/[0.07] to-transparent px-4 py-4">
             <Avatar name={user.fullName} src={user.avatar} size="lg" />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-ink">{user.fullName}</p>
@@ -181,7 +193,7 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
               </p>
             </div>
           </div>
-          <div className="border-b border-line px-4 py-3">
+          <div className="border-b border-line/70 px-4 py-3">
             <p className="mb-2 text-xs font-medium text-ink-3">Appearance</p>
             <SegmentedControl
               label="Appearance"
@@ -201,7 +213,7 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
                 close();
                 navigate(settingsPath);
               }}
-              className="focus-ring flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-sm text-ink-2 hover:bg-surface-2 hover:text-ink"
+              className="focus-ring flex h-9 w-full items-center gap-2.5 rounded-xl px-2.5 text-sm text-ink-2 transition-colors hover:bg-ink/[0.04] hover:text-ink dark:hover:bg-white/[0.06]"
             >
               <Settings className="h-4 w-4" aria-hidden="true" />
               Profile & settings
@@ -212,7 +224,7 @@ export const ProfileMenu = ({ user, settingsPath, onLogout }) => {
                 close();
                 onLogout();
               }}
-              className="focus-ring flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-sm text-ink-2 hover:bg-danger/10 hover:text-danger"
+              className="focus-ring flex h-9 w-full items-center gap-2.5 rounded-xl px-2.5 text-sm text-ink-2 transition-colors hover:bg-danger/10 hover:text-danger"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
               Log out
