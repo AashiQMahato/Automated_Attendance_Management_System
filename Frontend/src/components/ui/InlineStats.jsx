@@ -5,7 +5,7 @@ const tones = { default: "text-ink", success: "text-success", warning: "text-war
 // items: [{ label, value, tone? }]
 const InlineStats = ({ items, className = "" }) => (
   <dl
-    className={`grid divide-x divide-line rounded-lg border border-line ${className}`}
+    className={`glass-well grid divide-x divide-line/70 rounded-2xl ${className}`}
     style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
   >
     {items.map((item) => (

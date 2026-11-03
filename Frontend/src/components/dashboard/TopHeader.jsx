@@ -4,7 +4,8 @@ import logo from "../../assets/Logo.svg";
 import { colors } from "../ui/colors";
 import Tooltip from "../ui/Tooltip";
 import { NotificationsMenu, ProfileMenu, ThemeToggle } from "./HeaderMenus";
-import CommandMenu, { isMac } from "./CommandMenu";
+import CommandMenu from "./CommandMenu";
+import { isMac } from "../../lib/platform";
 
 /*
   Apple-style toolbar:

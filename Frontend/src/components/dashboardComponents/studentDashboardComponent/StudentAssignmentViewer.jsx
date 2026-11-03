@@ -22,7 +22,7 @@ import store from "../../../zustand/loginStore";
 import api from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
 import { dayjs, dueStatus, titleCase } from "../../../lib/format";
-import { useTheme } from "../../../theme/ThemeProvider";
+import { useTheme } from "../../../theme/useTheme";
 import PageHeader from "../../ui/PageHeader";
 import Button from "../../ui/Button";
 import StatusBadge from "../../ui/StatusBadge";
@@ -238,15 +238,16 @@ const StudentAssignmentViewer = () => {
         width={520}
         accent={
           {
-            indigo: "from-indigo-50",
-            emerald: "from-emerald-50",
-            amber: "from-amber-50",
-            sky: "from-sky-50",
-            violet: "from-violet-50",
-            rose: "from-rose-50",
-            cyan: "from-cyan-50",
-            fuchsia: "from-fuchsia-50",
-          }[colorFor(selectedAssignment?.subject?._id)] + " via-white/40 to-transparent"
+            indigo: "from-indigo-500/[0.1]",
+            emerald: "from-emerald-500/[0.1]",
+            amber: "from-amber-500/[0.1]",
+            sky: "from-sky-500/[0.1]",
+            violet: "from-violet-500/[0.1]",
+            rose: "from-rose-500/[0.1]",
+            cyan: "from-cyan-500/[0.1]",
+            fuchsia: "from-fuchsia-500/[0.1]",
+            teal: "from-teal-500/[0.1]",
+          }[colorFor(selectedAssignment?.subject?._id)] + " via-transparent to-transparent"
         }
         header={
           selectedAssignment && (

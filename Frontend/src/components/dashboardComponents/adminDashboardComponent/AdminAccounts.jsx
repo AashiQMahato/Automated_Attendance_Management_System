@@ -327,7 +327,7 @@ const AdminAccounts = () => {
         open={!!viewing}
         onClose={() => setViewing(null)}
         label={`${viewing?.fullName || ""} activity`}
-        accent="from-indigo-50 via-sky-50/60 to-transparent"
+        accent="from-indigo-500/[0.09] via-sky-500/[0.04] to-transparent"
         footer={viewing && <ResetPassword key={viewing._id} user={viewing} />}
         header={
           viewing && (
@@ -352,7 +352,7 @@ const AdminAccounts = () => {
         open={open}
         onClose={() => setOpen(false)}
         label="Add user"
-        accent="from-rose-50 via-indigo-50/60 to-transparent"
+        accent="from-rose-500/[0.09] via-indigo-500/[0.04] to-transparent"
         header={
           <div>
             <h2 className="text-[19px] font-semibold tracking-tight text-ink">

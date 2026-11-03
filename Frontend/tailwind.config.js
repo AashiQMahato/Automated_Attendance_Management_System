@@ -25,6 +25,7 @@ export default {
         "brand-2": token("brand-2"),
         "brand-fg": token("brand-fg"),
         accent: token("accent"),
+        "accent-2": token("accent-2"),
         success: token("success"),
         warning: token("warning"),
         danger: token("danger"),
@@ -36,16 +37,26 @@ export default {
         mono: ['"Geist Mono Variable"', '"Geist Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       boxShadow: {
-        xs: "0 1px 2px 0 rgb(17 19 43 / 0.05)",
-        card: "0 1px 2px 0 rgb(17 19 43 / 0.04), 0 8px 24px -12px rgb(17 19 43 / 0.08)",
-        lift: "0 2px 4px -1px rgb(17 19 43 / 0.05), 0 16px 32px -12px rgb(79 70 229 / 0.18)",
-        pop: "0 16px 40px -12px rgb(17 19 43 / 0.22), 0 4px 10px -4px rgb(17 19 43 / 0.08)",
+        xs: "0 1px 2px 0 rgb(16 24 39 / 0.05)",
+        card: "var(--glass-shadow)",
+        lift: "inset 0 1px 0 0 rgb(var(--glass-edge) / var(--glass-edge-a)), var(--glass-shadow-lift)",
+        pop: "var(--glass-shadow-pop)",
+      },
+      borderRadius: {
+        panel: "var(--radius-panel)",
+        control: "var(--radius-control)",
       },
       transitionTimingFunction: {
         // Close to Apple's default ease-out; used for UI state transitions.
         apple: "cubic-bezier(0.25, 0.1, 0.25, 1)",
       },
       keyframes: {
+        "scan-line": {
+          "0%": { transform: "translateY(-10%)", opacity: "0" },
+          "15%": { opacity: "1" },
+          "85%": { opacity: "1" },
+          "100%": { transform: "translateY(1000%)", opacity: "0" },
+        },
         shimmer: {
           "0%": { backgroundPosition: "-400px 0" },
           "100%": { backgroundPosition: "400px 0" },
@@ -53,6 +64,7 @@ export default {
       },
       animation: {
         shimmer: "shimmer 1.4s linear infinite",
+        "scan-line": "scan-line 2.2s cubic-bezier(0.4,0,0.2,1) infinite",
       },
     },
   },

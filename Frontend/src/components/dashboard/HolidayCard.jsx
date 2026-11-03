@@ -4,13 +4,8 @@ import { Skeleton } from "../ui/Skeleton";
 import StatusBadge from "../ui/StatusBadge";
 import DateTile from "../ui/DateTile";
 import { dayjs, titleCase } from "../../lib/format";
+import { holidayStatus } from "../../lib/holidays";
 
-export const holidayStatus = (h) => {
-  const today = dayjs();
-  if (today.isBefore(dayjs(h.startDate))) return "upcoming";
-  if (today.isAfter(dayjs(h.endDate))) return "passed";
-  return "ongoing";
-};
 
 const statusTone = { upcoming: "info", ongoing: "success", passed: "neutral" };
 const statusLabel = { upcoming: "Upcoming", ongoing: "Ongoing", passed: "Past" };

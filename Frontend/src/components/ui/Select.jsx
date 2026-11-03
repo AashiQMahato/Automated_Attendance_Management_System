@@ -172,7 +172,7 @@ const Select = ({
         disabled={disabled}
         onClick={() => (open ? close() : openMenu())}
         onKeyDown={onKeyDown}
-        className={`focus-ring group flex w-full items-center gap-2 border bg-surface text-left text-ink shadow-xs transition-[border-color,box-shadow,transform] duration-150 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`focus-ring group flex w-full items-center gap-2 border bg-surface/70 text-left text-ink shadow-[inset_0_1px_0_0_rgb(var(--glass-edge)/var(--glass-edge-a)),0_1px_2px_0_rgb(16_24_39/0.04)] dark:bg-canvas/40 transition-[border-color,box-shadow,transform] duration-150 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${
           open ? "border-brand/60 shadow-[0_0_0_3px_rgb(var(--brand)/0.12)]" : "border-line hover:border-line-strong"
         } ${SIZES[size]}`}
       >
@@ -214,7 +214,7 @@ const Select = ({
                 bottom: place.bottom,
                 transformOrigin: place.up ? "bottom center" : "top center",
               }}
-              className="select-menu z-[1100] flex flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-surface/80 shadow-[0_12px_40px_-8px_rgb(15_23_42/0.28),0_2px_6px_-2px_rgb(15_23_42/0.12)] backdrop-blur-2xl backdrop-saturate-[1.8] dark:border-white/10 dark:bg-surface-2/80"
+              className="select-menu glass-pop z-[1100] flex flex-col overflow-hidden rounded-2xl"
             >
               {searchable && (
                 <div className="flex items-center gap-2 border-b border-line/70 px-3 py-2">

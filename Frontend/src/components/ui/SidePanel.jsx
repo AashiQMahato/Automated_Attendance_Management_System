@@ -28,7 +28,7 @@ const SidePanel = ({
   onClose,
   width = 480,
   header,
-  accent = "from-indigo-50 via-violet-50/60 to-transparent",
+  accent = "from-brand/[0.08] via-brand-2/[0.04] to-transparent",
   footer,
   label,
   children,
@@ -49,23 +49,24 @@ const SidePanel = ({
           : {
               margin: 12,
               height: "calc(100% - 24px)",
-              borderRadius: 20,
+              borderRadius: 26,
               overflow: "hidden",
-              boxShadow: "0 24px 60px -12px rgb(17 19 43 / 0.35)",
+              boxShadow: "none",
             },
+        content: { background: "transparent" },
         body: { padding: 0, display: "flex", flexDirection: "column" },
-        mask: { backdropFilter: "blur(2px)", background: "rgb(9 11 22 / 0.35)" },
+        mask: { backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", background: "rgb(10 15 28 / 0.32)" },
       }}
     >
-      <div className="flex min-h-full flex-col bg-surface">
+      <div className={`glass-pop flex min-h-full flex-col ${small ? "" : "rounded-[26px]"}`}>
         <div
-          className={`relative border-b border-line bg-gradient-to-b px-5 pb-5 pt-4 dark:from-indigo-500/10 dark:via-transparent sm:px-6 ${accent}`}
+          className={`relative border-b border-line/70 bg-gradient-to-b px-5 pb-5 pt-4 sm:px-6 ${accent}`}
         >
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="focus-ring absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface/80 text-ink-2 shadow-xs ring-1 ring-line backdrop-blur transition-colors hover:text-ink"
+            className="focus-ring absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-ink/[0.06] text-ink-2 backdrop-blur transition-colors hover:bg-ink/[0.1] hover:text-ink dark:bg-white/10"
           >
             <X className="h-4 w-4" />
           </button>
@@ -75,7 +76,7 @@ const SidePanel = ({
         <div className="flex-1 space-y-5 px-5 py-5 sm:px-6">{children}</div>
 
         {footer && (
-          <div className="glass sticky bottom-0 border-t border-line bg-surface/90 px-5 py-4 backdrop-blur-xl sm:px-6">{footer}</div>
+          <div className="sticky bottom-0 border-t border-line/70 bg-[rgb(var(--glass)/0.7)] px-5 py-4 backdrop-blur-xl sm:px-6">{footer}</div>
         )}
       </div>
     </Drawer>

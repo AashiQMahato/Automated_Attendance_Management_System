@@ -2,7 +2,11 @@ import { motion } from "framer-motion";
 
 // iOS-style switch with an optional visible state label.
 const Switch = ({ checked, onChange, label, onLabel, offLabel, tone = "success" }) => {
-  const track = checked ? (tone === "success" ? "bg-success" : "bg-brand") : "bg-line-strong";
+  const track = checked
+    ? tone === "success"
+      ? "bg-[#20B99A] shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.12)]"
+      : "bg-brand"
+    : "bg-ink/[0.12] shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.08)] dark:bg-white/[0.14]";
   return (
     <button
       type="button"
@@ -14,9 +18,10 @@ const Switch = ({ checked, onChange, label, onLabel, offLabel, tone = "success" 
     >
       <span className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 ${track}`}>
         <motion.span
-          className="h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgb(15_23_42/0.25)]"
+          className="h-5 w-5 rounded-full bg-white shadow-[0_2px_4px_rgb(16_24_39/0.2),0_0_0_0.5px_rgb(16_24_39/0.06)]"
           animate={{ x: checked ? 16 : 0 }}
-          transition={{ type: "spring", bounce: 0, duration: 0.25 }}
+          whileTap={{ scaleX: 1.15 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
         />
       </span>
       {(onLabel || offLabel) && (

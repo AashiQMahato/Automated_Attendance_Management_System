@@ -5,7 +5,8 @@ import PageHeader from "../../ui/PageHeader";
 import { Card } from "../../ui/Card";
 import { EmptyState } from "../../ui/States";
 import AsyncContent from "../../ui/AsyncContent";
-import HolidayCard, { HolidaySkeleton, holidayStatus } from "../../dashboard/HolidayCard";
+import HolidayCard, { HolidaySkeleton } from "../../dashboard/HolidayCard";
+import { holidayStatus } from "../../../lib/holidays";
 
 const order = { ongoing: 0, upcoming: 1, passed: 2 };
 

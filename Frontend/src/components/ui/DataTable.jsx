@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Search, SearchX } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import SearchInput from "./SearchInput";
 import { EmptyState } from "./States";
 
 /*
@@ -70,19 +71,9 @@ const DataTable = ({
   return (
     <div>
       {(search || toolbar) && (
-        <div className="flex flex-col gap-2 border-b border-line px-4 py-3 sm:flex-row sm:items-center sm:px-5">
+        <div className="flex flex-col gap-2 border-b border-line/70 px-4 py-3 sm:flex-row sm:items-center sm:px-5">
           {search && (
-            <label className="relative block w-full sm:max-w-xs">
-              <span className="sr-only">{search.placeholder}</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" aria-hidden="true" />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={search.placeholder}
-                className="focus-ring h-10 w-full rounded-xl border border-line bg-surface-2/50 pl-9 pr-3 text-sm text-ink placeholder:text-ink-3 focus-visible:border-brand/60 focus-visible:ring-offset-0"
-              />
-            </label>
+            <SearchInput value={query} onChange={setQuery} placeholder={search.placeholder} className="w-full sm:max-w-xs" />
           )}
           {toolbar && <div className="flex flex-wrap items-center gap-2 sm:ml-auto">{toolbar}</div>}
         </div>
@@ -101,7 +92,7 @@ const DataTable = ({
             <table className="w-full border-collapse text-sm">
               {caption && <caption className="sr-only">{caption}</caption>}
               <thead className={stickyHeader ? "sticky top-0 z-[1]" : ""}>
-                <tr className="border-b border-line bg-surface-2/60 backdrop-blur">
+                <tr className="border-b border-line/70 bg-ink/[0.025] backdrop-blur dark:bg-white/[0.03]">
                   {columns.map((col) => {
                     const sorted = sort?.key === col.key;
                     return (
@@ -135,7 +126,7 @@ const DataTable = ({
               </thead>
               <tbody>
                 {current.map((row, i) => (
-                  <tr key={getKey(row, i)} className="border-b border-line transition-colors last:border-0 hover:bg-brand/[0.035]">
+                  <tr key={getKey(row, i)} className="border-b border-line/60 transition-colors duration-150 last:border-0 hover:bg-accent/[0.045]">
                     {columns.map((col) => (
                       <td key={col.key} className={`px-5 py-3.5 align-middle text-ink-2 ${alignClass(col.align)} ${col.className || ""}`}>
                         {col.render ? col.render(row) : row[col.key]}
@@ -148,7 +139,7 @@ const DataTable = ({
           </div>
 
           {/* Mobile: rows become compact cards instead of a scrolling table */}
-          <ul className="divide-y divide-line md:hidden">
+          <ul className="divide-y divide-line/60 md:hidden">
             {current.map((row, i) => (
               <li key={getKey(row, i)} className="px-4 py-3.5">
                 {mobileRow ? (
@@ -176,7 +167,7 @@ const DataTable = ({
           {filtered.length > pageSize && (
             <nav
               aria-label="Pagination"
-              className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-[13px] text-ink-3 sm:px-5"
+              className="flex items-center justify-between gap-3 border-t border-line/70 px-4 py-3 text-[13px] text-ink-3 sm:px-5"
             >
               <span className="tabular-nums">
                 {page * pageSize + 1}–{Math.min(filtered.length, (page + 1) * pageSize)} of {filtered.length}
@@ -187,11 +178,11 @@ const DataTable = ({
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
                   aria-label="Previous page"
-                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 disabled:opacity-40"
+                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-2 ring-1 ring-inset ring-line transition-colors hover:bg-surface hover:text-brand disabled:opacity-40"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="px-1 tabular-nums">
+                <span className="min-w-[3.5rem] px-1 text-center tabular-nums">
                   {page + 1} / {pageCount}
                 </span>
                 <button
@@ -199,7 +190,7 @@ const DataTable = ({
                   onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
                   disabled={page >= pageCount - 1}
                   aria-label="Next page"
-                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-2 hover:bg-surface-2 disabled:opacity-40"
+                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-2 ring-1 ring-inset ring-line transition-colors hover:bg-surface hover:text-brand disabled:opacity-40"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>

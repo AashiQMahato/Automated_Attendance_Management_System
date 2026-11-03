@@ -1,5 +1,6 @@
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartTooltip, chartGradients, useChartTheme } from "../ui/Chart";
+import { ChartTooltip } from "../ui/Chart";
+import { chartGradients, useChartTheme } from "../ui/chartTheme";
 import { ATTENDANCE_THRESHOLD } from "../../lib/format";
 
 // data: [{ label, rate (0-100 | null), present, total }]

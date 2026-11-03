@@ -5,7 +5,7 @@ import Popover from "../ui/Popover";
 import Tooltip from "../ui/Tooltip";
 import Avatar from "../ui/Avatar";
 import SegmentedControl from "../ui/SegmentedControl";
-import { useTheme } from "../../theme/ThemeProvider";
+import { useTheme } from "../../theme/useTheme";
 import api from "../../lib/api";
 import { dayjs, titleCase } from "../../lib/format";
 

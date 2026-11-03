@@ -10,7 +10,8 @@ import Button from "../../ui/Button";
 import AsyncContent from "../../ui/AsyncContent";
 import { Card, CardHeader } from "../../ui/Card";
 import { EmptyState } from "../../ui/States";
-import HolidayCard, { HolidaySkeleton, holidayStatus } from "../../dashboard/HolidayCard";
+import HolidayCard, { HolidaySkeleton } from "../../dashboard/HolidayCard";
+import { holidayStatus } from "../../../lib/holidays";
 
 const TeacherHolidayAnnouncement = () => {
   const [form] = Form.useForm();

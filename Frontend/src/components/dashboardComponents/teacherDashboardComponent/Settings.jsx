@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { message } from "antd";
 import { Camera, KeyRound, Loader2, Monitor, Moon, Palette, Settings as SettingsIcon, Sun, UserRound } from "lucide-react";
 import store from "../../../zustand/loginStore";
-import { useTheme } from "../../../theme/ThemeProvider";
+import { useTheme } from "../../../theme/useTheme";
 import api from "../../../lib/api";
 import { heicToJpeg, isHeic, isImageFile } from "../../../lib/heic";
 import PageHeader from "../../ui/PageHeader";

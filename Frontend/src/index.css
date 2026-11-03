@@ -2,67 +2,220 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ------------------------------------------------------------------
-   Dashboard design tokens
-   RGB channels so Tailwind can apply opacity (see tailwind.config.js).
-   ------------------------------------------------------------------ */
+/* ==================================================================
+   AttendEase design tokens — "Liquid Glass"
+   Colors are RGB channels so Tailwind can apply opacity (bg-brand/10).
+   Spec palette: Indigo #5267E8 · Violet #8763E8 · Sky #259EDB ·
+   Emerald #20B99A · Amber #E9A33B · Coral #E66B7C.
+   In light mode, text-bearing tokens are deepened just enough to keep
+   >= 4.5:1 on the canvas; fills (charts, dots, rings) use the spec hues.
+   ================================================================== */
 :root {
-  --canvas: 244 246 251;      /* #F4F6FB  cool, faintly tinted */
-  --surface: 255 255 255;     /* #FFFFFF */
-  --surface-2: 241 243 250;   /* #F1F3FA */
-  --ink: 17 19 43;            /* #11132B  navy ink */
-  --ink-2: 75 82 112;         /* #4B5270 */
-  --ink-3: 104 111 142;       /* #686F8E */
-  --line: 228 231 241;        /* #E4E7F1 */
-  --line-strong: 205 210 228; /* #CDD2E4 */
-  --brand: 79 70 229;         /* #4F46E5 indigo-600 */
-  --brand-2: 124 58 237;      /* #7C3AED violet-600 */
+  --canvas: 244 246 251;      /* #F4F6FB */
+  --surface: 255 255 255;
+  --surface-2: 238 241 248;   /* #EEF1F8 */
+  --ink: 16 24 39;            /* #101827 */
+  --ink-2: 63 74 98;          /* #3F4A62 */
+  --ink-3: 93 106 132;        /* #5D6A84 (5.0:1 on canvas) */
+  --line: 223 228 239;        /* #DFE4EF */
+  --line-strong: 199 206 222; /* #C7CEDE */
+  --brand: 74 93 219;         /* #4A5DDB text-safe indigo */
+  --brand-2: 135 99 232;      /* #8763E8 violet */
   --brand-fg: 255 255 255;
-  /* Status inks are dark enough for small text on tinted badges (>= 4.5:1). */
-  --success: 4 120 87;        /* #047857 */
-  --warning: 180 83 9;        /* #B45309 */
-  --danger: 225 29 72;        /* #E11D48 */
-  --accent: 79 70 229;
-}
+  --success: 14 127 104;      /* #0E7F68 */
+  --warning: 163 95 10;       /* #A35F0A */
+  --danger: 194 59 85;        /* #C23B55 */
+  --accent: 74 93 219;
+  --accent-2: 135 99 232;
 
-/* Role accent: avatar ring, role chip, hero gradient. */
-[data-role="Student"] { --accent: 124 58 237; --hero-from: 79 70 229; --hero-via: 124 58 237; --hero-to: 192 38 211; }
-[data-role="Admin"] { --accent: 225 29 72; --hero-from: 190 18 60; --hero-via: 79 70 229; --hero-to: 124 58 237; }
-[data-role="Teacher"] { --accent: 79 70 229;  --hero-from: 67 56 202; --hero-via: 37 99 235;  --hero-to: 8 145 178; }
+  /* Glass materials */
+  --glass: 255 255 255;
+  --glass-a: 0.66;            /* panel opacity */
+  --glass-chrome-a: 0.62;     /* nav chrome opacity */
+  --glass-pop-a: 0.82;        /* menus, dialogs */
+  --glass-edge: 255 255 255;  /* bright rim */
+  --glass-edge-a: 0.75;
+  --glass-line: 16 24 39;     /* hairline that separates glass from canvas */
+  --glass-line-a: 0.07;
+  --glass-shadow: 0 1px 1px rgb(16 24 39 / 0.03), 0 10px 30px -14px rgb(31 41 80 / 0.16);
+  --glass-shadow-lift: 0 2px 4px rgb(16 24 39 / 0.04), 0 22px 44px -18px rgb(52 64 140 / 0.28);
+  --glass-shadow-pop: 0 24px 60px -16px rgb(16 24 39 / 0.28), 0 6px 14px -6px rgb(16 24 39 / 0.12);
+
+  /* Ambient light fields behind the glass */
+  --field-1: 82 103 232;
+  --field-2: 135 99 232;
+  --field-3: 37 158 219;
+  --field-a: 0.16;
+
+  --radius-panel: 22px;
+  --radius-control: 12px;
+}
 
 .dark {
-  --canvas: 9 11 22;          /* #090B16 */
-  --surface: 17 20 39;        /* #111427 */
-  --surface-2: 24 28 52;      /* #181C34 */
-  --ink: 241 243 255;         /* #F1F3FF */
-  --ink-2: 196 201 224;       /* #C4C9E0 */
-  --ink-3: 140 147 180;       /* #8C93B4 */
-  --line: 37 42 69;           /* #252A45 */
-  --line-strong: 55 61 96;    /* #373D60 */
-  --brand: 129 140 248;       /* #818CF8 indigo-400 */
-  --brand-2: 167 139 250;     /* #A78BFA violet-400 */
+  --canvas: 16 24 39;         /* #101827 */
+  --surface: 24 33 52;        /* #182134 */
+  --surface-2: 33 44 68;      /* #212C44 */
+  --ink: 241 244 250;
+  --ink-2: 200 207 222;
+  --ink-3: 154 164 186;       /* #9AA4BA */
+  --line: 46 58 84;
+  --line-strong: 66 80 110;
+  --brand: 129 146 245;       /* #8192F5 */
+  --brand-2: 167 140 245;
   --brand-fg: 255 255 255;
-  --success: 52 211 153;      /* emerald-400 */
-  --warning: 251 191 36;      /* amber-400 */
-  --danger: 251 113 133;      /* rose-400 */
+  --success: 32 185 154;      /* #20B99A */
+  --warning: 233 163 59;      /* #E9A33B */
+  --danger: 238 134 150;      /* #EE8696 */
+  --accent: 129 146 245;
+  --accent-2: 167 140 245;
+
+  --glass: 30 41 64;
+  --glass-a: 0.58;
+  --glass-chrome-a: 0.55;
+  --glass-pop-a: 0.86;
+  --glass-edge: 255 255 255;
+  --glass-edge-a: 0.07;
+  --glass-line: 255 255 255;
+  --glass-line-a: 0.07;
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 14px 34px -18px rgb(0 0 0 / 0.65);
+  --glass-shadow-lift: 0 24px 48px -20px rgb(0 0 0 / 0.75);
+  --glass-shadow-pop: 0 28px 70px -18px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.04);
+
+  --field-a: 0.2;
   color-scheme: dark;
 }
-.dark [data-role="Student"], .dark[data-role="Student"] { --accent: 167 139 250; }
-.dark [data-role="Teacher"], .dark[data-role="Teacher"] { --accent: 129 140 248; }
+
+/* ------------------------------------------------------------------
+   Role accents — one product, three identities.
+   Admin: Indigo/Violet · Teacher: Sky/Cyan · Student: Emerald/Teal
+   --hero-* stops are deep enough for white text (>= 5:1).
+   ------------------------------------------------------------------ */
+[data-role="Admin"] {
+  --accent: 74 93 219; --accent-2: 135 99 232;
+  --hero-from: 67 56 202; --hero-via: 82 103 232; --hero-to: 109 40 217;
+  --field-1: 82 103 232; --field-2: 135 99 232; --field-3: 230 107 124;
+}
+[data-role="Teacher"] {
+  --accent: 3 105 161; --accent-2: 14 116 144;
+  --hero-from: 67 56 202; --hero-via: 3 105 161; --hero-to: 14 116 144;
+  --field-1: 37 158 219; --field-2: 82 103 232; --field-3: 34 211 238;
+}
+[data-role="Student"] {
+  --accent: 14 127 104; --accent-2: 15 118 110;
+  --hero-from: 3 105 161; --hero-via: 15 118 110; --hero-to: 4 120 87;
+  --field-1: 32 185 154; --field-2: 37 158 219; --field-3: 82 103 232;
+}
+.dark [data-role="Admin"], .dark[data-role="Admin"] { --accent: 129 146 245; --accent-2: 167 140 245; }
+.dark [data-role="Teacher"], .dark[data-role="Teacher"] { --accent: 86 189 240; --accent-2: 103 232 249; }
+.dark [data-role="Student"], .dark[data-role="Student"] { --accent: 52 211 172; --accent-2: 94 234 212; }
 
 @layer base {
-  .dashboard-root {
-    @apply bg-canvas font-ui text-[14px] leading-normal text-ink antialiased;
+  html,
+  body {
+    background-color: rgb(var(--canvas));
   }
-  .dashboard-root ::selection {
-    background: rgb(var(--brand) / 0.18);
+  body {
+    @apply font-sans text-ink antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  .dashboard-root {
+    @apply font-ui text-[14px] leading-normal text-ink antialiased;
+  }
+  ::selection {
+    background: rgb(var(--brand) / 0.2);
+  }
+  /* Numbers line up everywhere. */
+  .tabular-nums {
+    font-feature-settings: "tnum";
   }
 }
 
 @layer components {
-  /* Primary gradient. Fixed 600-level stops keep white text >= 4.5:1 in both themes. */
+  /* ---------------- Liquid Glass materials ----------------
+     Three tiers, each with a bright rim (inner top highlight), a hairline
+     edge and layered depth. Blur is reserved for chrome and pop-ups;
+     panels use a lighter blur that drops away on small screens. */
+  .glass-panel {
+    background-color: rgb(var(--glass) / var(--glass-a));
+    border: 1px solid rgb(var(--glass-line) / var(--glass-line-a));
+    box-shadow: inset 0 1px 0 0 rgb(var(--glass-edge) / var(--glass-edge-a)), var(--glass-shadow);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+  .glass-chrome {
+    background-color: rgb(var(--glass) / var(--glass-chrome-a));
+    border: 1px solid rgb(var(--glass-line) / var(--glass-line-a));
+    box-shadow: inset 0 1px 0 0 rgb(var(--glass-edge) / var(--glass-edge-a)), var(--glass-shadow);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+  }
+  .glass-pop {
+    background-color: rgb(var(--glass) / var(--glass-pop-a));
+    border: 1px solid rgb(var(--glass-line) / calc(var(--glass-line-a) + 0.03));
+    box-shadow: inset 0 1px 0 0 rgb(var(--glass-edge) / var(--glass-edge-a)), var(--glass-shadow-pop);
+    -webkit-backdrop-filter: blur(36px) saturate(190%);
+    backdrop-filter: blur(36px) saturate(190%);
+  }
+  /* Recessed well inside a panel (inputs, segmented tracks, stat strips). */
+  .glass-well {
+    background-color: rgb(var(--surface-2) / 0.7);
+    border: 1px solid rgb(var(--glass-line) / var(--glass-line-a));
+    box-shadow: inset 0 1px 2px 0 rgb(16 24 39 / 0.04);
+  }
+  .dark .glass-well {
+    background-color: rgb(var(--canvas) / 0.45);
+    box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.25);
+  }
+  /* Specular sheen across the top of a surface: light catching the glass. */
+  .glass-sheen {
+    position: relative;
+    isolation: isolate;
+  }
+  .glass-sheen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: -1;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.55) 0%, rgb(255 255 255 / 0) 42%);
+    opacity: 0.6;
+  }
+  .dark .glass-sheen::before {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.06) 0%, rgb(255 255 255 / 0) 40%);
+    opacity: 1;
+  }
+  .shadow-glass-lift {
+    box-shadow: inset 0 1px 0 0 rgb(var(--glass-edge) / var(--glass-edge-a)), var(--glass-shadow-lift);
+  }
+
+  /* Ambient color fields: three soft, fixed radial lights behind the UI.
+     Pure gradients (no filter) so they cost nothing to composite. */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: rgb(var(--canvas));
+    background-image:
+      radial-gradient(42% 38% at 8% 4%, rgb(var(--field-1) / var(--field-a)) 0%, transparent 70%),
+      radial-gradient(38% 42% at 96% 10%, rgb(var(--field-2) / calc(var(--field-a) * 0.85)) 0%, transparent 70%),
+      radial-gradient(46% 40% at 70% 100%, rgb(var(--field-3) / calc(var(--field-a) * 0.7)) 0%, transparent 72%);
+  }
+  .ambient::after {
+    /* Faint grain-free vignette that anchors the edges. */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 0%, transparent 60%, rgb(var(--canvas) / 0.6) 100%);
+  }
+
+  /* Primary gradient. Fixed stops keep white text >= 4.5:1 in both themes. */
   .bg-brand-gradient {
-    background-image: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background-image: linear-gradient(135deg, #5267e8 0%, #6f5ce6 55%, #7a55e0 100%);
+  }
+  .bg-accent-gradient {
+    background-image: linear-gradient(135deg, rgb(var(--hero-from, 82 103 232)) 0%, rgb(var(--hero-via, 82 103 232)) 100%);
   }
   .text-brand-gradient {
     background-image: linear-gradient(135deg, rgb(var(--brand)) 0%, rgb(var(--brand-2)) 100%);
@@ -70,35 +223,70 @@
     background-clip: text;
     color: transparent;
   }
+  /* Role hero: deep gradient + two light blooms. */
   .bg-hero {
     background-image:
-      radial-gradient(120% 140% at 100% 0%, rgb(var(--hero-to) / 0.85) 0%, transparent 55%),
-      linear-gradient(120deg, rgb(var(--hero-from)) 0%, rgb(var(--hero-via)) 60%, rgb(var(--hero-to)) 130%);
+      radial-gradient(70% 120% at 100% 0%, rgb(var(--hero-to) / 0.9) 0%, transparent 60%),
+      radial-gradient(60% 90% at 0% 100%, rgb(var(--hero-from) / 0.95) 0%, transparent 65%),
+      linear-gradient(120deg, rgb(var(--hero-from)) 0%, rgb(var(--hero-via)) 55%, rgb(var(--hero-to)) 120%);
   }
   .shadow-glow {
-    box-shadow: 0 8px 20px -8px rgb(79 70 229 / 0.55);
+    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.28), 0 8px 22px -10px rgb(82 103 232 / 0.65);
   }
 
   /* Visible, consistent keyboard focus for every interactive element. */
   .focus-ring {
-    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface;
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
   }
 
   .skeleton {
-    @apply rounded-md bg-surface-2;
-    background-image: linear-gradient(
-      90deg,
-      rgb(var(--surface-2)) 0px,
-      rgb(var(--line) / 0.6) 80px,
-      rgb(var(--surface-2)) 160px
-    );
+    @apply rounded-md;
+    background-color: rgb(var(--ink) / 0.06);
+    background-image: linear-gradient(90deg, transparent 0px, rgb(var(--glass-edge) / 0.35) 80px, transparent 160px);
     background-size: 800px 100%;
+    background-repeat: no-repeat;
     @apply animate-shimmer;
+  }
+  .dark .skeleton {
+    background-color: rgb(255 255 255 / 0.06);
+    background-image: linear-gradient(90deg, transparent 0px, rgb(255 255 255 / 0.05) 80px, transparent 160px);
   }
 
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--line-strong)) transparent;
+  }
+}
+
+/* Small screens: panels keep their translucency but skip the blur, which is
+   the expensive part. Chrome and pop-ups keep it. */
+@media (max-width: 767px) {
+  .glass-panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: rgb(var(--glass) / calc(var(--glass-a) + 0.22));
+  }
+}
+
+/* No backdrop-filter support, or the user asks for less transparency:
+   everything becomes a solid surface with the same edges. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel,
+  .glass-chrome,
+  .glass-pop,
+  .glass {
+    background-color: rgb(var(--surface)) !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .glass-chrome,
+  .glass-pop,
+  .glass,
+  .select-menu {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: rgb(var(--surface)) !important;
   }
 }
 
@@ -109,36 +297,80 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton { animation: none; }
-  .dashboard-root *,
-  .dashboard-root *::before,
-  .dashboard-root *::after {
+  .skeleton {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
     transition-duration: 1ms !important;
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* antd: let token-themed components inherit the dashboard font. */
-.dashboard-root .ant-table,
-.dashboard-root .ant-form,
-.dashboard-root .ant-select,
-.dashboard-root .ant-picker {
-  font-family: inherit;
+/* ------------------------------------------------------------------
+   Ant Design → Liquid Glass. Portaled pop-ups pick up the materials.
+   ------------------------------------------------------------------ */
+.ant-table,
+.ant-form,
+.ant-select,
+.ant-picker,
+.ant-modal,
+.ant-message,
+.ant-popover {
+  font-family: inherit !important;
 }
-
-/* Translucent chrome falls back to a solid surface when requested. */
+.ant-modal .ant-modal-content,
+.ant-popover .ant-popover-inner,
+.ant-picker-dropdown .ant-picker-panel-container,
+.ant-select-dropdown,
+.ant-dropdown .ant-dropdown-menu,
+.ant-message .ant-message-notice-content {
+  background-color: rgb(var(--glass) / var(--glass-pop-a)) !important;
+  border: 1px solid rgb(var(--glass-line) / calc(var(--glass-line-a) + 0.03));
+  box-shadow: inset 0 1px 0 0 rgb(var(--glass-edge) / var(--glass-edge-a)), var(--glass-shadow-pop) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  backdrop-filter: blur(36px) saturate(190%);
+}
+.ant-modal .ant-modal-content {
+  border-radius: 24px !important;
+  padding: 22px 24px !important;
+}
+.ant-modal .ant-modal-header {
+  background: transparent !important;
+}
+.ant-modal-mask {
+  background-color: rgb(10 15 28 / 0.38) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.ant-message .ant-message-notice-content {
+  border-radius: 999px !important;
+  padding: 10px 16px !important;
+  font-weight: 500;
+}
+.ant-picker,
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number {
+  background-color: rgb(var(--surface) / 0.7) !important;
+}
+.dark .ant-picker,
+.dark .ant-input,
+.dark .ant-input-affix-wrapper,
+.dark .ant-input-number {
+  background-color: rgb(var(--canvas) / 0.45) !important;
+}
 @media (prefers-reduced-transparency: reduce) {
-  .glass {
-    backdrop-filter: none !important;
+  .ant-modal .ant-modal-content,
+  .ant-popover .ant-popover-inner,
+  .ant-picker-dropdown .ant-picker-panel-container,
+  .ant-select-dropdown,
+  .ant-dropdown .ant-dropdown-menu,
+  .ant-message .ant-message-notice-content {
     background-color: rgb(var(--surface)) !important;
-  }
-}
-
-/* Pop-up menus (ui/Select): solid instead of frosted when transparency is reduced. */
-@media (prefers-reduced-transparency: reduce) {
-  .select-menu {
-    background: rgb(var(--surface));
     backdrop-filter: none;
   }
 }

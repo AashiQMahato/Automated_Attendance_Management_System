@@ -4,7 +4,7 @@ import Button from "./Button";
 export const EmptyState = ({ icon: Icon, title, description, action, compact = false, className = "" }) => (
   <div className={`flex flex-col items-center justify-center text-center ${compact ? "px-4 py-8" : "px-6 py-14"} ${className}`}>
     {Icon && (
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-100 text-indigo-600 dark:from-indigo-500/15 dark:to-violet-500/15 dark:text-indigo-300">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand/10 to-brand-2/15 text-brand shadow-[inset_0_1px_0_0_rgb(var(--glass-edge)/var(--glass-edge-a))] ring-1 ring-inset ring-brand/10">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
     )}

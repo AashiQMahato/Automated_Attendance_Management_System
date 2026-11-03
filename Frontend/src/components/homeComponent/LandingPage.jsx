@@ -13,7 +13,7 @@ import takeAttendanceDark from "../../assets/landing/take-attendance-dark.jpeg";
 import reportsDark from "../../assets/landing/reports-dark.jpeg";
 import studentOverviewDark from "../../assets/landing/student-overview-dark.jpeg";
 import calendarDark from "../../assets/landing/calendar-dark.jpeg";
-import { useTheme } from "../../theme/ThemeProvider";
+import { useTheme } from "../../theme/useTheme";
 
 const NAV = [
   { href: "/#how-it-works", label: "How it works" },

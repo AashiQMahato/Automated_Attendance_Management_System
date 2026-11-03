@@ -34,7 +34,7 @@ import {
   relativeDay,
 } from "../../../lib/format";
 import { bySubject, monthStats, studentEntries, summarize, thresholdGuidance, trendSeries } from "../../../lib/attendance";
-import HeroBanner, { HeroChip } from "../../ui/HeroBanner";
+import HeroBanner, { HeroAside, HeroChip } from "../../ui/HeroBanner";
 import DateTile from "../../ui/DateTile";
 import { colorFor, colors } from "../../ui/colors";
 import Button from "../../ui/Button";
@@ -141,7 +141,7 @@ const StudentHomePage = () => {
       }
       aside={
         derived?.overall.total > 0 && (
-          <div className="flex items-center gap-4 rounded-2xl bg-white/10 p-4 ring-1 ring-inset ring-white/20 backdrop-blur lg:flex-col lg:px-6 lg:py-5">
+          <HeroAside>
             <ProgressRing
               value={derived.overall.rate}
               size={104}
@@ -156,7 +156,7 @@ const StudentHomePage = () => {
             <p className="max-w-[140px] text-[13px] text-white/85 lg:text-center">
               {derived.overall.present} of {derived.overall.total} classes attended
             </p>
-          </div>
+          </HeroAside>
         )
       }
     />

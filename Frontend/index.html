@@ -4,9 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Automated Attendance Management System</title>
+    <meta name="theme-color" content="#F4F6FB" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="AttendEase — automated, face-recognition attendance with analytics for teachers, students and administrators." />
+    <title>AttendEase · Automated Attendance</title>
+    <script>
+      // Resolve the theme before first paint so there is never a flash of the
+      // wrong one. Mirrors ThemeProvider (key "dashboard-theme", default system).
+      (function () {
+        try {
+          var stored = localStorage.getItem("dashboard-theme");
+          var dark = stored === "dark" || (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          if (dark) root.classList.add("dark");
+          root.style.colorScheme = dark ? "dark" : "light";
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#101827" : "#F4F6FB");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

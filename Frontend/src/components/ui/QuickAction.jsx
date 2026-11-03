@@ -7,11 +7,11 @@ const QuickAction = ({ icon: Icon, title, description, onClick, primary = false,
   <button
     type="button"
     onClick={onClick}
-    className={`focus-ring group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors duration-150 active:scale-[0.99] ${
-      primary ? "bg-brand-gradient text-white shadow-glow hover:brightness-110" : "hover:bg-surface-2"
+    className={`focus-ring group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-[background-color,filter,transform] duration-200 ease-apple active:scale-[0.99] ${
+      primary ? "bg-brand-gradient text-white shadow-glow hover:brightness-[1.08]" : "hover:bg-ink/[0.04] dark:hover:bg-white/[0.05]"
     }`}
   >
-    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${primary ? "bg-white/20" : colors[color].tile}`}>
+    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${primary ? "bg-white/20 shadow-[inset_0_1px_0_0_rgb(255_255_255/0.3)]" : colors[color].tile}`}>
       <Icon className="h-4 w-4" aria-hidden="true" />
     </span>
     <span className="min-w-0 flex-1">

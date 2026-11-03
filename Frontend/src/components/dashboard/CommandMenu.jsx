@@ -4,10 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { CornerDownLeft, Moon, Search, Sun } from "lucide-react";
 import { colors } from "../ui/colors";
-import { useTheme } from "../../theme/ThemeProvider";
+import { useTheme } from "../../theme/useTheme";
 import { allItems } from "./navigation";
 
-export const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
 // Spotlight-style quick jump: every dashboard destination plus a theme switch.
 // Opens with ⌘K / Ctrl+K or from the header search pill.

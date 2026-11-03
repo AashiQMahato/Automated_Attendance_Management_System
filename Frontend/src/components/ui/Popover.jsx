@@ -53,12 +53,12 @@ const Popover = ({ trigger, children, align = "right", width = "w-72", label }) 
             id={id}
             role="dialog"
             aria-label={label}
-            initial={{ opacity: 0, scale: 0.97, y: -4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.96, y: -6, filter: "blur(4px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, scale: 0.98, y: -2 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.22 }}
+            transition={{ type: "spring", bounce: 0.12, duration: 0.32 }}
             style={{ transformOrigin: align === "right" ? "top right" : "top left" }}
-            className={`absolute top-full z-50 mt-2 ${align === "right" ? "right-0" : "left-0"} ${width} max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-surface shadow-pop`}
+            className={`absolute top-full z-50 mt-2 ${align === "right" ? "right-0" : "left-0"} ${width} max-w-[calc(100vw-2rem)] glass-pop overflow-hidden rounded-[20px]`}
           >
             {typeof children === "function" ? children({ close }) : children}
           </motion.div>

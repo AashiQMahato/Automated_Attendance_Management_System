@@ -6,7 +6,7 @@ const SegmentedControl = ({ options, value, onChange, label, size = "sm" }) => {
   const id = useId();
   const height = size === "sm" ? "h-7 text-xs" : "h-8 text-[13px]";
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-[10px] bg-surface-2 p-1">
+    <div role="radiogroup" aria-label={label} className="glass-well inline-flex rounded-[12px] p-1">
       {options.map((opt) => {
         const active = opt.value === value;
         const Icon = opt.icon;
@@ -17,14 +17,14 @@ const SegmentedControl = ({ options, value, onChange, label, size = "sm" }) => {
             role="radio"
             aria-checked={active}
             onClick={() => onChange(opt.value)}
-            className={`focus-ring relative inline-flex items-center gap-1.5 rounded-md px-2.5 font-medium transition-colors ${height} ${
+            className={`focus-ring relative inline-flex items-center gap-1.5 rounded-[9px] px-2.5 font-medium transition-colors ${height} ${
               active ? "text-brand" : "text-ink-3 hover:text-ink-2"
             }`}
           >
             {active && (
               <motion.span
                 layoutId={`seg-${id}`}
-                className="absolute inset-0 rounded-md bg-surface shadow-xs ring-1 ring-brand/15"
+                className="absolute inset-0 rounded-[9px] bg-surface shadow-[inset_0_1px_0_0_rgb(var(--glass-edge)/var(--glass-edge-a)),0_1px_3px_0_rgb(16_24_39/0.1)] ring-1 ring-black/[0.04] dark:bg-white/[0.12] dark:ring-white/10"
                 transition={{ type: "spring", bounce: 0, duration: 0.3 }}
               />
             )}

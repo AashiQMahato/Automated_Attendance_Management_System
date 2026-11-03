@@ -22,7 +22,7 @@ import api, { fetchSubjects } from "../../../lib/api";
 import useAsync from "../../../lib/useAsync";
 import { ATTENDANCE_THRESHOLD, attendanceStatus, dayjs, firstName, formatPercent, greeting, percent, titleCase } from "../../../lib/format";
 import { sessionRate, studentRatesFromSessions, trendSeries } from "../../../lib/attendance";
-import HeroBanner, { HeroChip } from "../../ui/HeroBanner";
+import HeroBanner, { HeroAside, HeroChip } from "../../ui/HeroBanner";
 import { colorFor, colors as palette } from "../../ui/colors";
 import Button from "../../ui/Button";
 import StatCard from "../../ui/StatCard";
@@ -32,7 +32,8 @@ import SegmentedControl from "../../ui/SegmentedControl";
 import QuickAction from "../../ui/QuickAction";
 import { Card, CardBody, CardHeader } from "../../ui/Card";
 import { ProgressBar, ProgressRing } from "../../ui/Progress";
-import { ChartTooltip, chartGradients, useChartTheme } from "../../ui/Chart";
+import { ChartTooltip } from "../../ui/Chart";
+import { chartGradients, useChartTheme } from "../../ui/chartTheme";
 import { EmptyState } from "../../ui/States";
 import { SkeletonCard, SkeletonStatGrid } from "../../ui/Skeleton";
 import AsyncContent from "../../ui/AsyncContent";
@@ -161,7 +162,7 @@ const HomePage = () => {
       }
       aside={
         derived?.classes.length > 0 && (
-          <div className="flex items-center gap-4 rounded-2xl bg-white/10 p-4 ring-1 ring-inset ring-white/20 backdrop-blur lg:flex-col lg:px-6 lg:py-5">
+          <HeroAside>
             <ProgressRing
               value={(derived.sessionsToday / derived.classes.length) * 100}
               size={104}
@@ -178,7 +179,7 @@ const HomePage = () => {
             <p className="max-w-[140px] text-[13px] text-white/85 lg:text-center">
               {derived.sessionsToday === derived.classes.length ? "All classes recorded" : "classes recorded today"}
             </p>
-          </div>
+          </HeroAside>
         )
       }
     />
@@ -505,7 +506,7 @@ const HomePage = () => {
         onClose={() => setStudentDetail(null)}
         label={studentDetail?.name}
         width={440}
-        accent="from-amber-50 via-white/40 to-transparent"
+        accent="from-amber-500/[0.1] via-amber-500/[0.03] to-transparent"
         header={
           studentDetail && (
             <div className="flex items-center gap-4">

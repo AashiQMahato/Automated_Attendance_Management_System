@@ -1,14 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import { MotionConfig } from "framer-motion";
-import { palette } from "./tokens";
-
-const STORAGE_KEY = "dashboard-theme";
-const ThemeContext = createContext(null);
+import { palette, THEME_STORAGE_KEY } from "./tokens";
+import { ThemeContext } from "./useTheme";
 
 const readPreference = () => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
     return stored === "light" || stored === "dark" ? stored : "system";
   } catch {
     return "system";
@@ -17,12 +15,14 @@ const readPreference = () => {
 
 const systemPrefersDark = () => typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
 
+// antd draws its own surfaces; we hand it the same tokens and let CSS in
+// index.css turn its pop-ups (modals, pickers, messages) into glass.
 const buildAntdTheme = (mode) => {
   const p = palette[mode];
   return {
     algorithm: mode === "dark" ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
     token: {
-      colorPrimary: p.brand,
+      colorPrimary: mode === "dark" ? p.brand : "#5267E8",
       colorInfo: p.brand,
       colorSuccess: p.success,
       colorWarning: p.warning,
@@ -38,20 +38,24 @@ const buildAntdTheme = (mode) => {
       colorBgElevated: p.surface,
       colorBgLayout: p.canvas,
       colorFillAlter: p.surface2,
-      borderRadius: 10,
-      borderRadiusLG: 16,
+      borderRadius: 12,
+      borderRadiusLG: 20,
+      borderRadiusSM: 8,
       controlHeight: 40,
       fontSize: 14,
       fontFamily: '"Geist Variable", Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-      boxShadowSecondary: "0 12px 32px -8px rgb(15 23 42 / 0.16), 0 4px 8px -4px rgb(15 23 42 / 0.06)",
+      boxShadowSecondary: "0 24px 60px -16px rgb(16 24 39 / 0.28), 0 6px 14px -6px rgb(16 24 39 / 0.12)",
       motionDurationMid: "0.2s",
+      motionEaseOut: "cubic-bezier(0.22, 1, 0.36, 1)",
     },
     components: {
-      Modal: { contentBg: p.surface, headerBg: p.surface, titleFontSize: 16 },
+      Modal: { contentBg: p.surface, headerBg: "transparent", footerBg: "transparent", titleFontSize: 17 },
       Drawer: { colorBgElevated: p.surface },
       Table: { headerBg: p.surface2, headerColor: p.ink3, rowHoverBg: p.surface2, borderColor: p.line },
-      Select: { optionSelectedBg: mode === "dark" ? "rgba(96,165,250,0.14)" : "#EFF6FF" },
-      Button: { primaryShadow: "none", defaultShadow: "none" },
+      Select: { optionSelectedBg: mode === "dark" ? "rgba(129,146,245,0.16)" : "#EEF1FD" },
+      DatePicker: { cellActiveWithRangeBg: mode === "dark" ? "rgba(129,146,245,0.16)" : "#EEF1FD" },
+      Button: { primaryShadow: "none", defaultShadow: "none", fontWeight: 500 },
+      Message: { contentBg: p.surface },
     },
   };
 };
@@ -69,10 +73,13 @@ export const ThemeProvider = ({ children }) => {
 
   const resolved = preference === "system" ? (systemDark ? "dark" : "light") : preference;
 
-  // The class lives on <html> so antd portals (modals, dropdowns) also get
-  // the right tokens. One setting covers the public pages and the dashboards.
+  // The class lives on <html> so antd portals (modals, dropdowns) also get the
+  // right tokens. index.html applies it before first paint (no flash).
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", resolved === "dark");
+    const root = document.documentElement;
+    root.classList.toggle("dark", resolved === "dark");
+    root.style.colorScheme = resolved;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", palette[resolved].canvas);
   }, [resolved]);
 
   const antdConfig = useMemo(() => buildAntdTheme(resolved), [resolved]);
@@ -85,20 +92,21 @@ export const ThemeProvider = ({ children }) => {
     });
   }, [antdConfig]);
 
-  const setPreference = (next) => {
-    const root = document.documentElement;
-    root.classList.add("theme-transition");
-    window.setTimeout(() => root.classList.remove("theme-transition"), 250);
-    setPreferenceState(next);
-    try {
-      if (next === "system") localStorage.removeItem(STORAGE_KEY);
-      else localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      /* storage unavailable: preference lasts for this session only */
-    }
-  };
-
-  const value = useMemo(() => ({ preference, resolved, setPreference, colors: palette[resolved] }), [preference, resolved]);
+  const value = useMemo(() => {
+    const setPreference = (next) => {
+      const root = document.documentElement;
+      root.classList.add("theme-transition");
+      window.setTimeout(() => root.classList.remove("theme-transition"), 250);
+      setPreferenceState(next);
+      try {
+        if (next === "system") localStorage.removeItem(THEME_STORAGE_KEY);
+        else localStorage.setItem(THEME_STORAGE_KEY, next);
+      } catch {
+        /* storage unavailable: preference lasts for this session only */
+      }
+    };
+    return { preference, resolved, setPreference, colors: palette[resolved] };
+  }, [preference, resolved]);
 
   return (
     <ThemeContext.Provider value={value}>
@@ -107,10 +115,4 @@ export const ThemeProvider = ({ children }) => {
       </ConfigProvider>
     </ThemeContext.Provider>
   );
-};
-
-export const useTheme = () => {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used inside <ThemeProvider>");
-  return ctx;
 };
